@@ -11,11 +11,9 @@ import pickle
 
 class ClassifyDataset(Dataset):
     def __init__(self, train_path, opt, mode):
-        
         self.train_data = []
-        for path in train_path:
-            self.train_data.extend(pickle.load(open(path, 'rb')))
-        self.num_tags = len(opt.category2id)
+        self.train_data.extend(pickle.load(open(train_path, 'rb')))
+        self.num_tags = opt.num_tags
 
         self.mode = mode
 
@@ -30,10 +28,9 @@ class ClassifyDataset(Dataset):
     def __getitem__(self, index):
         data = {'token_ids': torch.LongTensor(self.train_data[index].token_ids),
                 'attention_masks': torch.FloatTensor(self.train_data[index].attention_masks),
-                'token_type_ids': torch.LongTensor(self.train_data[index].token_type_ids)}
-
-        if self.mode == 'train':
-            data['labels'] = torch.tensor(self.train_data[index].label)
+                'token_type_ids': torch.LongTensor(self.train_data[index].token_type_ids),
+                'labels': torch.tensor(self.train_data[index].label),
+                'raw_text': self.train_data[index].raw_text}
 
         return data
 
@@ -59,11 +56,10 @@ class ClassifyInferDataset(Dataset):
         return len(self.dev_data)
 
     def __getitem__(self, index):
-
         data = {'token_ids': torch.LongTensor(self.dev_data[index].token_ids),
                 'attention_masks': torch.FloatTensor(self.dev_data[index].attention_masks),
                 'token_type_ids': torch.LongTensor(self.dev_data[index].token_type_ids),
-               'labels':torch.tensor(self.dev_data[index].label)}
-
+                'labels': torch.tensor(self.dev_data[index].label),
+                'raw_text': self.dev_data[index].raw_text}
 
         return data

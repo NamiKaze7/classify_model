@@ -17,12 +17,12 @@ def save_model(opt, model, global_step):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    # take care of model distributed / parallel training
+    # take care of models distributed / parallel training
     model_to_save = (
         model.module if hasattr(model, "module") else model
     )
-    logger.info(f'Saving model & optimizer & scheduler checkpoint to {output_dir}')
-    torch.save(model_to_save.state_dict(), os.path.join(output_dir, 'model.pt'))
+    logger.info(f'Saving models & optimizer & scheduler checkpoint to {output_dir}')
+    torch.save(model_to_save.state_dict(), os.path.join(output_dir, 'models.pt'))
 
 
 def build_optimizer_and_scheduler(opt, model, t_total):
@@ -114,7 +114,7 @@ def train(opt, model, train_dataset):
     save_steps = t_total // opt.train_epochs
     eval_steps = save_steps
 
-    logger.info(f'Save model in {save_steps} steps; Eval model in {eval_steps} steps')
+    logger.info(f'Save models in {save_steps} steps; Eval models in {eval_steps} steps')
 
     log_loss_steps = 20
 

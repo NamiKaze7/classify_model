@@ -65,13 +65,13 @@ def load_model_and_parallel(model, gpu_ids, ckpt_path=None, strict=True):
 
 def get_model_path_list(base_dir):
     """
-    从文件夹中获取 model.pt 的路径
+    从文件夹中获取 models.pt 的路径
     """
     model_lists = []
 
     for root, dirs, files in os.walk(base_dir):
         for _file in files:
-            if 'model.pt' == _file:
+            if 'models.pt' == _file:
                 model_lists.append(os.path.join(root, _file))
 
     model_lists = sorted(model_lists,
@@ -94,7 +94,7 @@ def swa(model, model_dir, swa_start=1):
 
     with torch.no_grad():
         for _ckpt in model_path_list[swa_start:]:
-            logger.info(f'Load model from {_ckpt}')
+            logger.info(f'Load models from {_ckpt}')
             model.load_state_dict(torch.load(_ckpt, map_location=torch.device('cpu'))['state_dict'])
             tmp_para_dict = dict(model.named_parameters())
 
@@ -110,9 +110,9 @@ def swa(model, model_dir, swa_start=1):
     if not os.path.exists(swa_model_dir):
         os.mkdir(swa_model_dir)
 
-    logger.info(f'Save swa model in: {swa_model_dir}')
+    logger.info(f'Save swa models in: {swa_model_dir}')
 
-    swa_model_path = os.path.join(swa_model_dir, 'model.pt')
+    swa_model_path = os.path.join(swa_model_dir, 'models.pt')
 
     torch.save(swa_model.state_dict(), swa_model_path)
 
@@ -143,7 +143,7 @@ def vote(entities_list, threshold=0.9):
 
 def ensemble_vote(entities_list, threshold=0.9):
     """
-    针对 ensemble model 进行的 vote
+    针对 ensemble models 进行的 vote
     实体级别的投票方式  (entity_type, entity_start, entity_end, entity_text)
     """
     threshold_nums = int(len(entities_list)*threshold)

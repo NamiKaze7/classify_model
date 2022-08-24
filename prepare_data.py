@@ -1,20 +1,17 @@
 import pickle
 import time
 import os
-import json
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
 import logging
 import pandas as pd
-from transformers import BertTokenizer
-from torch.utils.data import DataLoader
-from sklearn.model_selection import KFold
-from src.utils.trainer import train
+
 from src.utils.prepare_options import Args
-from src.utils.model_utils import build_model
-from src.utils.dataset_utils import ClassifyDataset
-from src.utils.functions_utils import set_seed, get_model_path_list, load_model_and_parallel, get_time_dif
+
+from src.utils.functions_utils import set_seed, get_time_dif
 from src.utils.processor import CLASSIFYProcessor, convert_examples_to_features
 from src.utils.processor import fine_grade_tokenize
-import tqdm
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -44,13 +41,14 @@ if __name__ == '__main__':
 
     opt = Args().get_parser()
 
-    opt.output_dir = os.path.join(opt.output_dir, opt.bert_type)
+    opt.save_dir = os.path.join(opt.save_dir, opt.bert_type)
 
     set_seed(opt.seed)
-
+    if not os.path.exists(opt.save_dir):
+        os.mkdir(opt.save_dir)
     train_path = os.path.join(opt.data_dir, 'sp_train.txt')
-    dev_path = os.path.join(opt.data_dir, 'sp_test.txt')
-
+    dev_path = os.path.join(opt.data_dir, 'sp_dev.txt')
+    test_path = os.path.join(opt.data_dir, 'sp_test.txt')
     # prepare_train
     logger.info('read train data from {}'.format(train_path))
     train_raw_examples = pd.read_csv(train_path, sep='\t').dropna()
@@ -68,6 +66,15 @@ if __name__ == '__main__':
     dev_features = convert_examples_to_features(dev_examples, opt.max_seq_len, opt.bert_dir)
     save_path =os.path.join(opt.save_dir, 'dev.pkl')
     pickle.dump(dev_features, open(save_path, 'wb'))
+    logger.info('save dev data in {}'.format(save_path))
+    logger.info('read dev data from {}'.format(dev_path))
+
+    test = pd.read_csv(test_path, sep='\t')
+    processor = CLASSIFYProcessor(opt.max_seq_len)
+    test_examples = processor.get_examples(test)
+    test_features = convert_examples_to_features(test_examples, opt.max_seq_len, opt.bert_dir)
+    save_path = os.path.join(opt.save_dir, 'test.pkl')
+    pickle.dump(test_features, open(save_path, 'wb'))
     logger.info('save dev data in {}'.format(save_path))
 
     time_dif = get_time_dif(start_time)

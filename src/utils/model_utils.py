@@ -1,12 +1,5 @@
-import os
-import math
 import torch
 import torch.nn as nn
-from itertools import repeat
-from transformers import BertModel
-from src.utils.functions_utils import vote
-from src.utils.evaluator import crf_decode, span_decode
-
 
 class LabelSmoothingCrossEntropy(nn.Module):
     def __init__(self, eps=0.1, reduction='mean', ignore_index=-100):
@@ -53,135 +46,21 @@ class FocalLoss(nn.Module):
         return loss
 
 
-class BaseModel(nn.Module):
-    def __init__(self,
-                 bert_dir,
-                 dropout_prob):
-        super(BaseModel, self).__init__()
-        config_path = os.path.join(bert_dir, 'config.json')
-        print(bert_dir)
-        assert os.path.exists(bert_dir) and os.path.exists(config_path), \
-            'pretrained bert file does not exist'
+class AverageMeter(object):
+    """Computes and stores the average and current value."""
 
-        self.bert_module = BertModel.from_pretrained(bert_dir,
-                                                     output_hidden_states=True,
-                                                     hidden_dropout_prob=dropout_prob)
+    def __init__(self):
+        self.reset()
 
-        self.bert_config = self.bert_module.config
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
 
-    @staticmethod
-    def _init_weights(blocks, **kwargs):
-        """
-        参数初始化，将 Linear / Embedding / LayerNorm 与 Bert 进行一样的初始化
-        """
-        for block in blocks:
-            for module in block.modules():
-                if isinstance(module, nn.Linear):
-                    if module.bias is not None:
-                        nn.init.zeros_(module.bias)
-                elif isinstance(module, nn.Embedding):
-                    nn.init.normal_(module.weight, mean=0, std=kwargs.pop('initializer_range', 0.02))
-                elif isinstance(module, nn.LayerNorm):
-                    nn.init.ones_(module.weight)
-                    nn.init.zeros_(module.bias)
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
 
-
-class ClassifyModel(BaseModel):
-    def __init__(self,
-                 bert_dir,
-                 num_tags,
-                 dropout_prob=0.1,
-                 loss_type='ls_ce',
-                 max_seq_len=100,
-                 **kwargs):
-        """
-        tag the subject and object corresponding to the predicate
-        :param loss_type: train loss type in ['ce', 'ls_ce', 'focal']
-        """
-        super(ClassifyModel, self).__init__(bert_dir, dropout_prob=dropout_prob)
-
-        out_dims = self.bert_config.hidden_size
-
-        mid_linear_dims = kwargs.pop('mid_linear_dims', 128)
-
-        self.num_tags = num_tags
-
-        self.mid_linear = nn.Sequential(
-            nn.Linear(out_dims, mid_linear_dims),
-            nn.ReLU(),
-            nn.Dropout(dropout_prob)
-        )
-
-        out_dims = mid_linear_dims
-
-        self.tags_fc = nn.Linear(out_dims * max_seq_len, num_tags)
-
-        reduction = 'none'
-        if loss_type == 'ce':
-            self.criterion = nn.CrossEntropyLoss(reduction=reduction)
-        elif loss_type == 'ls_ce':
-            self.criterion = LabelSmoothingCrossEntropy(reduction=reduction)
-        else:
-            self.criterion = FocalLoss(reduction=reduction)
-
-        self.loss_weight = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
-        self.loss_weight.data.fill_(-0.2)
-
-        init_blocks = [self.mid_linear, self.tags_fc]
-
-        self._init_weights(init_blocks)
-
-    def forward(self,
-                token_ids,
-                attention_masks,
-                token_type_ids,
-                labels):
-
-        bert_outputs = self.bert_module(
-            input_ids=token_ids,
-            attention_mask=attention_masks,
-            token_type_ids=token_type_ids
-        )
-        seq_out = bert_outputs[0]  # last_hidden_state
-
-        seq_out = self.mid_linear(seq_out)
-
-        seq_out = torch.reshape(seq_out, (seq_out.shape[0], -1))
-
-        logits = self.tags_fc(seq_out)
-        if labels is not None:
-            loss = self.criterion(logits, labels).mean()
-        else:
-            loss = -1
-        return (logits, loss)
-
-    def predict(self,
-                token_ids,
-                attention_masks,
-                token_type_ids):
-
-        bert_outputs = self.bert_module(
-            input_ids=token_ids,
-            attention_mask=attention_masks,
-            token_type_ids=token_type_ids
-        )
-        seq_out = bert_outputs[0]  # last_hidden_state
-
-        seq_out = self.mid_linear(seq_out)
-
-        seq_out = torch.reshape(seq_out, (seq_out.shape[0], -1))
-
-        logits = self.tags_fc(seq_out)
-
-        acc3 = torch.topk(nn.functional.softmax(logits, -1), 3)
-
-        return acc3
-
-
-def build_model(opt, **kwargs):
-    model = ClassifyModel(bert_dir=opt.bert_dir, num_tags=kwargs.pop('num_tags'),
-                          dropout_prob=kwargs.pop('dropout_prob', opt.dropout_prob),
-                          loss_type=kwargs.pop('loss_type', opt.loss_type),
-                          max_seq_len=kwargs.pop('max_seq_len', opt.max_seq_len))
-
-    return model

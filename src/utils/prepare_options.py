@@ -10,26 +10,23 @@ class Args:
     def initialize(parser: argparse.ArgumentParser):
 
         parser.add_argument('--output_dir', default='./out/',
-                            help='the output dir for model checkpoints')
+                            help='the output dir for models checkpoints')
         # data dir
         
-        parser.add_argument('--data_dir', default='./data/20210704/dev_snapshoot_0727.txt',
+        parser.add_argument('--data_dir', default='./file',
                            help='source data dir to prepare')
         
-        parser.add_argument('--save_dir', default='./data/20210704/dev_snapshoot_0727.pkl',
+        parser.add_argument('--save_dir', default='./data',
                            help='source data dir to prepare')
         # end prepare
-        parser.add_argument('--bert_dir', default='../chinese_roberta_wwm_ext_pytorch',
+        parser.add_argument('--bert_dir', default='../pretrained_models/chinese-roberta-wwm-ext',
                             help='bert dir for ernie / roberta-wwm / uer')
 
         parser.add_argument('--bert_type', default='roberta_wwm',
                             help='roberta_wwm / ernie_1 / uer_large')
 
-        parser.add_argument('--use_type_embed', default=False, action='store_true',
-                            help='weather to use soft label in span loss')
-
-        parser.add_argument('--use_fp16', default=False, action='store_true',
-                            help='weather to use fp16 during training')
+        parser.add_argument('--max_seq_len', default=8,
+                            help='max sequence length')
 
         # other args
         parser.add_argument('--seed', type=int, default=123, help='random seed')

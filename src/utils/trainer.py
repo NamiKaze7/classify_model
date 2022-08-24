@@ -17,13 +17,13 @@ def save_model(opt, model, global_step, best_acc):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    # take care of model distributed / parallel training
+    # take care of models distributed / parallel training
     model_to_save = (
         model.module if hasattr(model, "module") else model
     )
-    logger.info(f'Saving model & optimizer & scheduler checkpoint to {output_dir}')
+    logger.info(f'Saving models & optimizer & scheduler checkpoint to {output_dir}')
     state = {'state_dict': model_to_save.state_dict(), 'dev_acc': best_acc}
-    torch.save(state, os.path.join(output_dir, 'model.pt'))
+    torch.save(state, os.path.join(output_dir, 'models.pt'))
 
 
 def build_optimizer_and_scheduler(opt, model, t_total):
