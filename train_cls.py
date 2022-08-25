@@ -45,7 +45,7 @@ def main():
     best_result = float("-inf")
     logger.info("Loading data...")
     train_dataset = ClassifyDataset(args.train_path, args, 'train')
-    dev_dataset = ClassifyInferDataset(args.dev_path, args)
+    dev_dataset = ClassifyInferDataset(args.dev_path)
     train_sampler = RandomSampler(train_dataset)
 
     train_loader = DataLoader(dataset=train_dataset,
