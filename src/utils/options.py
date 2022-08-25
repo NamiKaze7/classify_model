@@ -67,3 +67,4 @@ def add_test_args(parser):
     parser.add_argument('--test_path', default='./file/sp_test.txt', type=str)
     parser.add_argument('--test_save_dir', default='./model_result/test1', type=str)
     parser.add_argument('--test_log_file', default='test.log', type=str)
+    parser.add_argument('--limit_score', default=0.8, type=float)
