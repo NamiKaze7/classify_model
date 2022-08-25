@@ -23,19 +23,23 @@ class InputExample:
         self.label = label
 
 
+class InputTestExample:
+    def __init__(self,
+                 text):
+        self.text = text
+
+
 class BaseFeature:
     def __init__(self,
                  token_ids,
                  attention_masks,
                  token_type_ids,
-                 raw_text,
-                 label):
+                 raw_text):
         # BERT 输入
         self.token_ids = token_ids
         self.attention_masks = attention_masks
         self.token_type_ids = token_type_ids
         self.raw_text = raw_text
-        self.label = label
 
 
 class ClassifyFeature(BaseFeature):
@@ -49,7 +53,8 @@ class ClassifyFeature(BaseFeature):
         super(ClassifyFeature, self).__init__(token_ids=token_ids,
                                               attention_masks=attention_masks,
                                               token_type_ids=token_type_ids,
-                                              raw_text=raw_text, label=label)
+                                              raw_text=raw_text)
+        self.label = label
 
 
 class CLASSIFYProcessor:
@@ -65,6 +70,68 @@ class CLASSIFYProcessor:
             examples.append(InputExample(text=sent, label=label))
 
         return examples
+
+
+class CLASSIFYTestProcessor:
+    def __init__(self, max_x_length=100):
+        self.max_x_length = max_x_length
+
+    def get_examples(self, raw_examples):
+        examples = []
+        for d in tqdm(raw_examples.iterrows()):
+            d = d[1]
+            sent = d['卖点'][:self.max_x_length - 2]
+            examples.append(InputTestExample(text=sent))
+
+        return examples
+
+    def convert_examples_to_features(self, examples, max_seq_len, bert_dir):
+        tokenizer = BertTokenizer(os.path.join(bert_dir, 'vocab.txt'))
+
+        callback_info = []
+
+        logger.info(f'Convert {len(examples)} examples to features')
+
+        for i, example in enumerate(examples):
+
+            tmp_callback = self.convert_example(
+                example=example,
+                max_seq_len=max_seq_len,
+                tokenizer=tokenizer
+            )
+
+            if tmp_callback is None:
+                continue
+
+            callback_info.append(tmp_callback)
+
+        return callback_info
+
+    def convert_example(self, example: InputTestExample, tokenizer: BertTokenizer, max_seq_len):
+        raw_text = example.text
+
+        tokens = fine_grade_tokenize(raw_text, tokenizer)
+        assert len(tokens) == len(raw_text)
+
+        encode_dict = tokenizer.encode_plus(text=tokens,
+                                            padding='max_length',
+                                            max_length=max_seq_len,
+                                            pad_to_max_length=True,
+                                            is_pretokenized=True,
+                                            return_token_type_ids=True,
+                                            return_attention_mask=True)
+
+        token_ids = encode_dict['input_ids']
+        attention_masks = encode_dict['attention_mask']
+        token_type_ids = encode_dict['token_type_ids']
+
+        callback_info = BaseFeature(token_ids=token_ids,
+                                    attention_masks=attention_masks,
+                                    token_type_ids=token_type_ids,
+                                    raw_text=raw_text
+                                    )
+
+        return callback_info
 
 
 def fine_grade_tokenize(raw_text, tokenizer):
@@ -134,5 +201,3 @@ def convert_examples_to_features(examples, max_seq_len, bert_dir):
         callback_info.append(tmp_callback)
 
     return callback_info
-
-

@@ -49,7 +49,7 @@ def text2token(raw_text, tokenizer, opt):
 
 
 class ClassifyInferDataset(Dataset):
-    def __init__(self, dev_path, opt):
+    def __init__(self, dev_path):
         self.dev_data = pickle.load(open(dev_path, 'rb'))
 
     def __len__(self):
@@ -61,5 +61,21 @@ class ClassifyInferDataset(Dataset):
                 'token_type_ids': torch.LongTensor(self.dev_data[index].token_type_ids),
                 'labels': torch.tensor(self.dev_data[index].label),
                 'raw_text': self.dev_data[index].raw_text}
+
+        return data
+
+
+class ClassifyTestDataset(Dataset):
+    def __init__(self, data):
+        self.test_data = data
+
+    def __len__(self):
+        return len(self.test_data)
+
+    def __getitem__(self, index):
+        data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids),
+                'attention_masks': torch.FloatTensor(self.test_data[index].attention_masks),
+                'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids),
+                'raw_text': self.test_data[index].raw_text}
 
         return data

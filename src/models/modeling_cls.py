@@ -134,7 +134,7 @@ class ClassifyModel(BaseModel):
         top = torch.topk(nn.functional.softmax(logits, -1), 1)
         output_dict['raw_text'] = raw_text
         output_dict['pred_label'] = top.indices
-        output_dict['pred_score'] = top.values
+        output_dict['pred_score'] = top.values*(top.indices - 0.5)*2
         return output_dict
 
     def get_metrics(self, logger=None):

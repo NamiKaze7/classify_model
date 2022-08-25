@@ -15,7 +15,6 @@ def add_data_args(parser: argparse.ArgumentParser):
                         help='dev data path')
 
 
-
 def add_train_args(parser: argparse.ArgumentParser):
     parser.add_argument("--num_tags", default=2, type=int, help="cls label count")
     parser.add_argument('--gradient_accumulation_steps', type=int, default=1,
@@ -41,7 +40,7 @@ def add_train_args(parser: argparse.ArgumentParser):
 
 
 def add_bert_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--bert_learning_rate", default=1.5e-5,type=float, help="bert learning rate.")
+    parser.add_argument("--bert_learning_rate", default=1.5e-5, type=float, help="bert learning rate.")
     parser.add_argument("--bert_weight_decay", default=0.01, type=float, help="bert weight decay.")
     parser.add_argument("--roberta_model", type=str, help="robert model path.",
                         default="../pretrained_models/chinese-roberta-wwm-ext")
@@ -50,7 +49,6 @@ def add_bert_args(parser: argparse.ArgumentParser):
 
 
 def add_raw_args(parser):
-
     # test args
     parser.add_argument('--ckpt_dir', default='', type=str)
     parser.add_argument('--eval_save_name', default='', type=str,
@@ -63,3 +61,9 @@ def add_raw_args(parser):
     parser.add_argument("--test_data_dir", type=str, default="./dataset_tagtree")
     parser.add_argument("--model_path", type=str, default='./checkpoint')
     parser.add_argument("--pretrained", type=bool, default=False)
+
+
+def add_test_args(parser):
+    parser.add_argument('--test_path', default='./file/sp_test.txt', type=str)
+    parser.add_argument('--test_save_dir', default='./model_result/test1', type=str)
+    parser.add_argument('--test_log_file', default='test.log', type=str)

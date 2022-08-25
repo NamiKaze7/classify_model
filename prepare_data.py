@@ -1,7 +1,8 @@
 import pickle
 import time
 import os
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 import logging
 import pandas as pd
@@ -11,7 +12,6 @@ from src.utils.prepare_options import Args
 from src.utils.functions_utils import set_seed, get_time_dif
 from src.utils.processor import CLASSIFYProcessor, convert_examples_to_features
 from src.utils.processor import fine_grade_tokenize
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     processor = CLASSIFYProcessor(opt.max_seq_len)
     dev_examples = processor.get_examples(dev)
     dev_features = convert_examples_to_features(dev_examples, opt.max_seq_len, opt.bert_dir)
-    save_path =os.path.join(opt.save_dir, 'dev.pkl')
+    save_path = os.path.join(opt.save_dir, 'dev.pkl')
     pickle.dump(dev_features, open(save_path, 'wb'))
     logger.info('save dev data in {}'.format(save_path))
     logger.info('read dev data from {}'.format(dev_path))

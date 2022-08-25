@@ -24,29 +24,32 @@ class TagtreePredictModel():
         self.dev_loss.reset()
 
     @torch.no_grad()
-    def evaluate(self, dev_data_list, epoch):
-        dev_data_list.reset()
+    def evaluate(self, dev_data_list):
         self.network.eval()
         for batch in tqdm(dev_data_list):
-            output_dict = self.network(**batch, mode="eval", epoch=epoch)
+            output_dict = self.network(**batch)
             loss = output_dict["loss"]
             self.dev_loss.update(loss.item(), 1)
-        self.network.train()
 
     @torch.no_grad()
     def predict(self, test_data_list):
         self.network.eval()
-        pred_json = {}
+        pred_list = []
         for batch in tqdm(test_data_list):
             output_dict = self.network.predict(**batch)
-
-        return pred_json
+            text = output_dict['raw_text']
+            label = output_dict['pred_label']
+            score = output_dict['pred_score']
+            for i in range(len(label)):
+                rec_lis = [text[i], int(label[i]), float(score[i])]
+                pred_list.append(rec_lis)
+        return pred_list
 
     def reset(self):
         self.mnetwork.reset()
 
-    def get_df(self):
-        return self.mnetwork.get_df()
+    def get_raw_details(self):
+        return self.mnetwork.get_raw_details()
 
     def get_metrics(self, logger=None):
         return self.mnetwork.get_metrics_predict(logger)
@@ -71,7 +74,8 @@ class FineTuningModel():
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         optimizer_parameters = [
-            {'params': [p for n, p in self.network.bert_module.named_parameters() if not any(nd in n for nd in no_decay)],
+            {'params': [p for n, p in self.network.bert_module.named_parameters() if
+                        not any(nd in n for nd in no_decay)],
              'weight_decay': args.bert_weight_decay, 'lr': args.bert_learning_rate},
             {'params': [p for n, p in self.network.bert_module.named_parameters() if any(nd in n for nd in no_decay)],
              'weight_decay': 0.0, 'lr': args.bert_learning_rate},
