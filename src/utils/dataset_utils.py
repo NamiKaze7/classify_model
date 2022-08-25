@@ -65,17 +65,17 @@ class ClassifyInferDataset(Dataset):
 
     def __getitem__(self, index):
         if self.cuda:
-            data = {'token_ids': torch.LongTensor(self.train_data[index].token_ids).cuda(),
-                    'attention_masks': torch.FloatTensor(self.train_data[index].attention_masks).cuda(),
-                    'token_type_ids': torch.LongTensor(self.train_data[index].token_type_ids).cuda(),
-                    'labels': torch.tensor(self.train_data[index].label).cuda(),
-                    'raw_text': self.train_data[index].raw_text}
+            data = {'token_ids': torch.LongTensor(self.dev_data[index].token_ids).cuda(),
+                    'attention_masks': torch.FloatTensor(self.dev_data[index].attention_masks).cuda(),
+                    'token_type_ids': torch.LongTensor(self.dev_data[index].token_type_ids).cuda(),
+                    'labels': torch.tensor(self.dev_data[index].label).cuda(),
+                    'raw_text': self.dev_data[index].raw_text}
         else:
-            data = {'token_ids': torch.LongTensor(self.train_data[index].token_ids),
-                    'attention_masks': torch.FloatTensor(self.train_data[index].attention_masks),
-                    'token_type_ids': torch.LongTensor(self.train_data[index].token_type_ids),
-                    'labels': torch.tensor(self.train_data[index].label),
-                    'raw_text': self.train_data[index].raw_text}
+            data = {'token_ids': torch.LongTensor(self.dev_data[index].token_ids),
+                    'attention_masks': torch.FloatTensor(self.dev_data[index].attention_masks),
+                    'token_type_ids': torch.LongTensor(self.dev_data[index].token_type_ids),
+                    'labels': torch.tensor(self.dev_data[index].label),
+                    'raw_text': self.dev_data[index].raw_text}
 
         return data
 
