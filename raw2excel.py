@@ -75,6 +75,7 @@ def get_onesp(processor, model, bert_dir, test_raw):
 
     return ret
 
+
 def just_chinese(strings):
     regStr = ".*?([\u4E00-\u9FA5]+).*?"
     expr = ''.join(re.findall(regStr, strings))
@@ -82,26 +83,28 @@ def just_chinese(strings):
         return expr
     return '\n'
 
+
 def hand_raw_text(df):
-    sp = set()
     l = []
     for i, row in df.iterrows():
         v = row['review_body']
         blis = re.split('，|,| +|。|！|、', v)
         for w in blis:
             w = just_chinese(w)
-            if 6 >= len(w) >= 3 and w not in sp:
-                sp.add(w)
+            if 6 >= len(w) >= 3:
                 l.append([row['base_sku_id'], row['base_sku_name'], w])
     return pd.DataFrame(l, columns=['base_sku_id', 'base_sku_name', '卖点'])
+
 
 def main():
     start_time = time.time()
     logger.info('----------------开始计时----------------')
     logger.info('----------------------------------------')
 
-    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']][:100]
+    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']]
+    logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df)
+    logger.info('total data size: {}\n'.format(len(df)))
     model, bert_dir = load_model(args)
     processor = CLASSIFYTestProcessor(args.max_seq_len)
 

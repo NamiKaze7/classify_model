@@ -35,7 +35,7 @@ class TagtreePredictModel():
     def predict(self, test_data_list):
         self.network.eval()
         pred_list = []
-        for batch in tqdm(test_data_list):
+        for batch in test_data_list:
             output_dict = self.network.predict(**batch)
             text = output_dict['raw_text']
             label = output_dict['pred_label']
