@@ -4,7 +4,7 @@ import re
 import time
 import os
 from pprint import pprint
-
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 
@@ -108,7 +108,7 @@ def main():
     group_name = 'base_sku_id'
     cate_ids = set(df[group_name].values)
     reslis = []
-    for cate_id in cate_ids:
+    for cate_id in tqdm(cate_ids):
         raw = df[df[group_name] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
         ret = get_onesp(processor, model, bert_dir, raw)
@@ -116,7 +116,6 @@ def main():
         good = ret[ret['分数'] > args.limit_score]
         goodsp = good.head()['卖点'].to_list()
         reslis.append([cate_id, name, goodsp])
-        if len(reslis) > 15: break
     save_file = os.path.join(args.test_save_dir, 'result.xlsx')
     total_ret = pd.DataFrame(reslis, columns=['base_sku_id', 'base_sku_name', 'selling_points'])
     total_ret.to_excel(save_file)
