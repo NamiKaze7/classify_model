@@ -57,7 +57,7 @@ def main():
         bert_model = RobertaModel.from_pretrained(args.roberta_model)
         bert_dir = args.roberta_model
     test_features = processor.convert_examples_to_features(test_examples, args.max_seq_len, bert_dir)
-    test_dataset = ClassifyTestDataset(test_features)
+    test_dataset = ClassifyTestDataset(test_features, args)
     test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size)
 
     network = ClassifyModel(bert_model=bert_model, num_tags=args.num_tags,

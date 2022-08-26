@@ -81,16 +81,23 @@ class ClassifyInferDataset(Dataset):
 
 
 class ClassifyTestDataset(Dataset):
-    def __init__(self, data):
+    def __init__(self, data, args):
         self.test_data = data
+        self.cuda = args.cuda
 
     def __len__(self):
         return len(self.test_data)
 
     def __getitem__(self, index):
-        data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids),
-                'attention_masks': torch.FloatTensor(self.test_data[index].attention_masks),
-                'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids),
-                'raw_text': self.test_data[index].raw_text}
+        if self.cuda:
+            data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids).cuda(),
+                    'attention_masks': torch.FloatTensor(self.test_data[index].attention_masks).cuda(),
+                    'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids).cuda(),
+                    'raw_text': self.test_data[index].raw_text}
+        else:
+            data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids),
+                    'attention_masks': torch.FloatTensor(self.test_data[index].attention_masks),
+                    'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids),
+                    'raw_text': self.test_data[index].raw_text}
 
         return data
