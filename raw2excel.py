@@ -85,7 +85,7 @@ def just_chinese(strings):
     return '\n'
 
 
-def hand_raw_text(df):
+def hand_raw_text(df, g_id, g_name):
     l = []
     for i, row in df.iterrows():
         v = row['review_body']
@@ -93,37 +93,46 @@ def hand_raw_text(df):
         for w in blis:
             w = just_chinese(w)
             if 6 >= len(w) >= 3:
-                l.append([row['base_sku_id'], row['base_sku_name'], w])
-    return pd.DataFrame(l, columns=['base_sku_id', 'base_sku_name', '卖点'])
+                l.append([row[g_id], row[g_name], w])
+    return pd.DataFrame(l, columns=[g_id, g_name, '卖点'])
 
 
 def main():
     start_time = time.time()
     logger.info('----------------开始计时----------------')
     logger.info('----------------------------------------')
-
-    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']]
+    if args.group_name == 'category5_id':
+        g_id = 'category5_id'
+        g_name = 'category5_name'
+    else:
+        g_id = 'base_sku_id'
+        g_name = 'base_sku_name'
+    raw_df = pd.read_csv(args.test_path, sep='\t')[[g_id, g_name,
+                                                    'review_body']][:100]
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
-    df = hand_raw_text(raw_df)
+    df = hand_raw_text(raw_df, g_id, g_name)
     logger.info('total data size: {}\n'.format(len(df)))
     model, bert_dir = load_model(args)
     processor = CLASSIFYTestProcessor(args.max_seq_len)
 
-    cate_ids = list(set(df[args.group_name].values))
+    cate_ids = list(set(df[g_id].values))
     reslis = []
     for i in tqdm(range(len(cate_ids))):
         cate_id = cate_ids[i]
-        raw = df[df[args.group_name] == cate_id]
+        raw = df[df[g_id] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
         ret = get_onesp(processor, model, bert_dir, raw)
-        name = raw.iloc[0]['base_sku_name']
+        name = raw.iloc[0][g_name]
         good = ret[ret['分数'] > args.limit_score]
-        goodsp = good.head()['卖点'].to_list()
+        if g_id == 'base_sku_id':
+            goodsp = good.head()['卖点'].to_list()
+        else:
+            goodsp = good.head(20)['卖点'].to_list()
         reslis.append([cate_id, name, goodsp])
     if not os.path.exists(args.test_save_dir):
         os.mkdir(args.test_save_dir)
     save_file = os.path.join(args.test_save_dir, 'result_{}.xlsx'.format(args.group_name))
-    total_ret = pd.DataFrame(reslis, columns=['base_sku_id', 'base_sku_name', 'selling_points'])
+    total_ret = pd.DataFrame(reslis, columns=[g_id, g_name, 'selling_points'])
     total_ret.to_excel(save_file, engine='xlsxwriter')
     logging.info("----------本次容器运行时长：{}-----------".format(get_time_dif(start_time)))
 
