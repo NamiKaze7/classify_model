@@ -78,7 +78,7 @@ class CLASSIFYTestProcessor:
 
     def get_examples(self, raw_examples):
         examples = []
-        for d in tqdm(raw_examples.iterrows()):
+        for d in raw_examples.iterrows():
             d = d[1]
             sent = d['卖点'][:self.max_x_length - 2]
             examples.append(InputTestExample(text=sent))

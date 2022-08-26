@@ -101,7 +101,7 @@ def main():
     logger.info('----------------开始计时----------------')
     logger.info('----------------------------------------')
 
-    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']]
+    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']][:100]
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df)
     logger.info('total data size: {}\n'.format(len(df)))
@@ -109,9 +109,10 @@ def main():
     processor = CLASSIFYTestProcessor(args.max_seq_len)
 
     group_name = 'base_sku_id'
-    cate_ids = set(df[group_name].values)
+    cate_ids = list(set(df[group_name].values))
     reslis = []
-    for cate_id in tqdm(cate_ids):
+    for i in tqdm(range(len(cate_ids))):
+        cate_id = cate_ids[i]
         raw = df[df[group_name] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
         ret = get_onesp(processor, model, bert_dir, raw)
@@ -119,6 +120,8 @@ def main():
         good = ret[ret['分数'] > args.limit_score]
         goodsp = good.head()['卖点'].to_list()
         reslis.append([cate_id, name, goodsp])
+    if not os.path.exists(args.test_save_dir):
+        os.mkdir(args.test_save_dir)
     save_file = os.path.join(args.test_save_dir, 'result.xlsx')
     total_ret = pd.DataFrame(reslis, columns=['base_sku_id', 'base_sku_name', 'selling_points'])
     total_ret.to_excel(save_file)
