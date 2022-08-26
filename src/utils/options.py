@@ -68,3 +68,4 @@ def add_test_args(parser):
     parser.add_argument('--test_save_dir', default='./model_result/test1', type=str)
     parser.add_argument('--test_log_file', default='test.log', type=str)
     parser.add_argument('--limit_score', default=0.8, type=float)
+    parser.add_argument('--group_name', default='base_sku_id', type=str)

@@ -109,12 +109,11 @@ def main():
     model, bert_dir = load_model(args)
     processor = CLASSIFYTestProcessor(args.max_seq_len)
 
-    group_name = 'base_sku_id'
-    cate_ids = list(set(df[group_name].values))
+    cate_ids = list(set(df[args.group_name].values))
     reslis = []
     for i in tqdm(range(len(cate_ids))):
         cate_id = cate_ids[i]
-        raw = df[df[group_name] == cate_id]
+        raw = df[df[args.group_name] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
         ret = get_onesp(processor, model, bert_dir, raw)
         name = raw.iloc[0]['base_sku_name']
@@ -123,7 +122,7 @@ def main():
         reslis.append([cate_id, name, goodsp])
     if not os.path.exists(args.test_save_dir):
         os.mkdir(args.test_save_dir)
-    save_file = os.path.join(args.test_save_dir, 'result.xlsx')
+    save_file = os.path.join(args.test_save_dir, 'result_{}.xlsx'.format(args.group_name))
     total_ret = pd.DataFrame(reslis, columns=['base_sku_id', 'base_sku_name', 'selling_points'])
     total_ret.to_excel(save_file, engine='xlsxwriter')
     logging.info("----------本次容器运行时长：{}-----------".format(get_time_dif(start_time)))
