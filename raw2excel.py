@@ -101,7 +101,7 @@ def main():
     logger.info('----------------开始计时----------------')
     logger.info('----------------------------------------')
 
-    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']][:100]
+    raw_df = pd.read_csv(args.test_path, sep='\t')[['base_sku_id', 'base_sku_name', 'review_body']]
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df)
     logger.info('total data size: {}\n'.format(len(df)))
