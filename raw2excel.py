@@ -7,6 +7,7 @@ from pprint import pprint
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
+import xlsxwriter
 
 from src.models.model import TagtreePredictModel
 from src.models.modeling_cls import ClassifyModel
@@ -124,7 +125,7 @@ def main():
         os.mkdir(args.test_save_dir)
     save_file = os.path.join(args.test_save_dir, 'result.xlsx')
     total_ret = pd.DataFrame(reslis, columns=['base_sku_id', 'base_sku_name', 'selling_points'])
-    total_ret.to_excel(save_file)
+    total_ret.to_excel(save_file, engine='xlsxwriter')
     logging.info("----------本次容器运行时长：{}-----------".format(get_time_dif(start_time)))
 
 
