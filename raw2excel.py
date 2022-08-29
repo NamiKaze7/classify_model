@@ -139,7 +139,7 @@ def main():
         with pd.ExcelWriter(save_file, engine='xlsxwriter') as writer:
             for idsp, namesp, goodsps in reslis:
                 sp_df = pd.DataFrame(goodsps, columns=['卖点'])
-                sp_df.to_excel(writer, sheet_name=namesp)
+                sp_df.to_excel(writer, sheet_name=just_chinese(namesp))
 
     logging.info("----------本次容器运行时长：{}-----------".format(get_time_dif(start_time)))
 
