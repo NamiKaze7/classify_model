@@ -4,9 +4,9 @@ import torch
 
 def add_data_args(parser: argparse.ArgumentParser):
     parser.add_argument("--gpu_num", default=torch.cuda.device_count(), type=int, help="training gpu num.")
-    parser.add_argument("--save_dir", default="./checkpoint", type=str, help="save dir.")
+    parser.add_argument("--save_dir", default="./model_saved/checkpoint", type=str, help="save dir.")
     parser.add_argument("--log_file", default="train.log", type=str, help="train log file.")
-    parser.add_argument("--load_dir", default="./checkpoint", type=str, help="load dir.")
+    parser.add_argument("--load_dir", default="./model_saved/checkpoint", type=str, help="load dir.")
     parser.add_argument("--get_result", default="", type=str, help="get xlsx file.")
     parser.add_argument('--max_seq_len', default=8, type=int)
     parser.add_argument('--train_path', type=str, default='data/roberta_wwm/train.pkl',

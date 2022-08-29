@@ -26,7 +26,7 @@ options.add_bert_args(parser)
 args = parser.parse_args()
 
 if not os.path.exists(args.save_dir):
-    os.mkdir(args.save_dir)
+    os.makedirs(args.save_dir)
 
 args.cuda = args.gpu_num > 0
 args_path = os.path.join(args.save_dir, "args.json")

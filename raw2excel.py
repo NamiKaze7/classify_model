@@ -8,7 +8,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 import xlsxwriter
-
+from src.utils.data_tools import just_chinese
 from src.models.model import TagtreePredictModel
 from src.models.modeling_cls import ClassifyModel
 from src.utils import options
@@ -75,14 +75,6 @@ def get_onesp(processor, model, bert_dir, test_raw):
     ret = pd.merge(test_raw, res_df).sort_values(by='分数', ascending=False)
 
     return ret
-
-
-def just_chinese(strings):
-    regStr = ".*?([\u4E00-\u9FA5]+).*?"
-    expr = ''.join(re.findall(regStr, strings))
-    if expr:
-        return expr
-    return '\n'
 
 
 def hand_raw_text(df, g_id, g_name):
