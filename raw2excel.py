@@ -127,13 +127,20 @@ def main():
         if g_id == 'base_sku_id':
             goodsp = good.head()['卖点'].to_list()
         else:
-            goodsp = good.head(20)['卖点'].to_list()
+            goodsp = good.head(args.top_sp)['卖点'].to_list()
         reslis.append([cate_id, name, goodsp])
     if not os.path.exists(args.test_save_dir):
         os.mkdir(args.test_save_dir)
     save_file = os.path.join(args.test_save_dir, 'result_{}.xlsx'.format(args.group_name))
-    total_ret = pd.DataFrame(reslis, columns=[g_id, g_name, 'selling_points'])
-    total_ret.to_excel(save_file, engine='xlsxwriter')
+    if g_id == 'base_sku_id':
+        total_ret = pd.DataFrame(reslis, columns=[g_id, g_name, 'selling_points'])
+        total_ret.to_excel(save_file, engine='xlsxwriter')
+    else:
+        with pd.ExcelWriter(save_file, engine='xlsxwriter') as writer:
+            for idsp, namesp, goodsps in reslis:
+                sp_df = pd.DataFrame(goodsps, columns=['卖点'])
+                sp_df.to_excel(writer, sheet_name=namesp)
+
     logging.info("----------本次容器运行时长：{}-----------".format(get_time_dif(start_time)))
 
 
