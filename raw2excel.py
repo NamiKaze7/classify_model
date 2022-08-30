@@ -128,7 +128,7 @@ def main():
     if not os.path.exists(args.test_save_dir):
         os.mkdir(args.test_save_dir)
     save_file = os.path.join(args.test_save_dir, 'result_{}.xlsx'.format(args.group_name))
-    if g_id == 'base_sku_id':
+    if g_id == 'base_sku_id' or 'base_cspu_id':
         total_ret = pd.DataFrame(reslis, columns=[g_id, g_name, 'selling_points'])
         total_ret.to_excel(save_file, engine='xlsxwriter')
     else:
