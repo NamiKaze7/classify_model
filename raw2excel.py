@@ -104,7 +104,7 @@ def main():
         g_name = 'base_sku_name'
 
     raw_df = pd.read_csv(args.test_path, sep='\t')[[g_id, g_name,
-                                                    'review_body']]
+                                                    'review_body']].dropna()
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df, g_id, g_name)
     logger.info('total data size: {}\n'.format(len(df)))
