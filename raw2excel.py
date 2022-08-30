@@ -96,18 +96,22 @@ def main():
     if args.group_name == 'category5_id':
         g_id = 'category5_id'
         g_name = 'category5_name'
+    elif args.group_name == 'base_cspu_id':
+        g_id = 'base_cspu_id'
+        g_name = 'base_cspu_name'
     else:
         g_id = 'base_sku_id'
         g_name = 'base_sku_name'
+
     raw_df = pd.read_csv(args.test_path, sep='\t')[[g_id, g_name,
                                                     'review_body']]
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df, g_id, g_name)
     logger.info('total data size: {}\n'.format(len(df)))
+    cate_ids = list(set(df[g_id].values))
     model, bert_dir = load_model(args)
     processor = CLASSIFYTestProcessor(args.max_seq_len)
 
-    cate_ids = list(set(df[g_id].values))
     reslis = []
     for i in tqdm(range(len(cate_ids))):
         cate_id = cate_ids[i]
