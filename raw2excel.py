@@ -8,7 +8,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 import xlsxwriter
-from src.utils.data_tools import just_chinese
+from src.utils.data_tools import just_chinese, cut_sentence
 from src.models.model import TagtreePredictModel
 from src.models.modeling_cls import ClassifyModel
 from src.utils import options
@@ -68,7 +68,7 @@ def get_onesp(processor, model, bert_dir, test_raw):
     test_examples = processor.get_examples(test_raw)
     test_features = processor.convert_examples_to_features(test_examples, args.max_seq_len, bert_dir)
     test_dataset = ClassifyTestDataset(test_features, args)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, num_workers=4)
     pred_lis = model.predict(test_loader)
     res_df = pd.DataFrame(pred_lis, columns=['卖点', '标签', '分数'])
 
@@ -81,7 +81,7 @@ def hand_raw_text(df, g_id, g_name):
     l = []
     for i, row in df.iterrows():
         v = row['review_body']
-        blis = re.split('，|,| +|。|！|、', v)
+        blis = cut_sentence(v)
         for w in blis:
             w = just_chinese(w)
             if 6 >= len(w) >= 3:
