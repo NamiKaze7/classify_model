@@ -118,7 +118,7 @@ class CLASSIFYTestProcessor:
 
         encode_dict = self.tokenizer.encode_plus(text=tokens,
                                                  padding='max_length',
-                                                 max_length=512,
+                                                 max_length=self.max_seq_len,
                                                  pad_to_max_length=True,
                                                  is_pretokenized=True,
                                                  return_token_type_ids=True,
