@@ -25,7 +25,7 @@ class Args:
         parser.add_argument('--bert_type', default='roberta_wwm',
                             help='roberta_wwm / ernie_1 / uer_large')
 
-        parser.add_argument('--max_seq_len', default=8,
+        parser.add_argument('--max_seq_len', default=8, type=int,
                             help='max sequence length')
 
         # other args

@@ -13,7 +13,12 @@ logger = logging.getLogger(__name__)
 ENTITY_TYPES = ['DRUG', 'DRUG_INGREDIENT', 'DISEASE', 'SYMPTOM', 'SYNDROME', 'DISEASE_GROUP',
                 'FOOD', 'FOOD_GROUP', 'PERSON_GROUP', 'DRUG_GROUP', 'DRUG_DOSAGE', 'DRUG_TASTE',
                 'DRUG_EFFICACY']
+PAD_token = 0
 
+
+def pad_seq(seq, seq_len, max_length):
+    seq += [PAD_token for _ in range(max_length - seq_len)]
+    return seq
 
 class InputExample:
     def __init__(self,
@@ -63,8 +68,8 @@ class CLASSIFYProcessor:
 
     def get_examples(self, raw_examples):
         examples = []
-        for d in tqdm(raw_examples.iterrows()):
-            d = d[1]
+        for i,d in tqdm(raw_examples.iterrows()):
+
             sent = d['卖点'][:self.max_x_length - 2]
             label = d['label']
             examples.append(InputExample(text=sent, label=label))
@@ -113,7 +118,7 @@ class CLASSIFYTestProcessor:
 
         encode_dict = self.tokenizer.encode_plus(text=tokens,
                                                  padding='max_length',
-                                                 max_length=self.max_seq_len,
+                                                 max_length=512,
                                                  pad_to_max_length=True,
                                                  is_pretokenized=True,
                                                  return_token_type_ids=True,
