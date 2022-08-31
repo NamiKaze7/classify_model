@@ -73,20 +73,20 @@ class CLASSIFYProcessor:
 
 
 class CLASSIFYTestProcessor:
-    def __init__(self, max_x_length=100):
-        self.max_x_length = max_x_length
+    def __init__(self, bert_dir, max_seq_len=100):
+        self.max_seq_len = max_seq_len
+        self.tokenizer = BertTokenizer(os.path.join(bert_dir, 'vocab.txt'))
 
     def get_examples(self, raw_examples):
         examples = []
         for d in raw_examples.iterrows():
             d = d[1]
-            sent = d['卖点'][:self.max_x_length - 2]
+            sent = d['卖点'][:self.max_seq_len - 2]
             examples.append(InputTestExample(text=sent))
 
         return examples
 
-    def convert_examples_to_features(self, examples, max_seq_len, bert_dir):
-        tokenizer = BertTokenizer(os.path.join(bert_dir, 'vocab.txt'))
+    def convert_examples_to_features(self, examples):
 
         callback_info = []
 
@@ -95,9 +95,7 @@ class CLASSIFYTestProcessor:
         for i, example in enumerate(examples):
 
             tmp_callback = self.convert_example(
-                example=example,
-                max_seq_len=max_seq_len,
-                tokenizer=tokenizer
+                example=example
             )
 
             if tmp_callback is None:
@@ -107,19 +105,19 @@ class CLASSIFYTestProcessor:
 
         return callback_info
 
-    def convert_example(self, example: InputTestExample, tokenizer: BertTokenizer, max_seq_len):
+    def convert_example(self, example: InputTestExample):
         raw_text = example.text
 
-        tokens = fine_grade_tokenize(raw_text, tokenizer)
+        tokens = fine_grade_tokenize(raw_text, self.tokenizer)
         assert len(tokens) == len(raw_text)
 
-        encode_dict = tokenizer.encode_plus(text=tokens,
-                                            padding='max_length',
-                                            max_length=max_seq_len,
-                                            pad_to_max_length=True,
-                                            is_pretokenized=True,
-                                            return_token_type_ids=True,
-                                            return_attention_mask=True)
+        encode_dict = self.tokenizer.encode_plus(text=tokens,
+                                                 padding='max_length',
+                                                 max_length=self.max_seq_len,
+                                                 pad_to_max_length=True,
+                                                 is_pretokenized=True,
+                                                 return_token_type_ids=True,
+                                                 return_attention_mask=True)
 
         token_ids = encode_dict['input_ids']
         attention_masks = encode_dict['attention_mask']

@@ -5,7 +5,7 @@ from src.utils.model_utils import AverageMeter
 from tqdm import tqdm
 
 
-class TagtreePredictModel():
+class PredictModel():
     def __init__(self, args, network):
         self.args = args
         self.train_loss = AverageMeter()

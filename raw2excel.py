@@ -1,6 +1,6 @@
 import argparse
 import json
-import re
+from src.utils.filter_tag import taglist
 import time
 import os
 from pprint import pprint
@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 import xlsxwriter
 from src.utils.data_tools import just_chinese, cut_sentence
-from src.models.model import TagtreePredictModel
+from src.models.model import PredictModel
 from src.models.modeling_cls import ClassifyModel
 from src.utils import options
 from src.utils.dataset_utils import ClassifyTestDataset
@@ -57,23 +57,24 @@ def load_model(args):
                             dropout_prob=args.dropout,
                             loss_type=args.loss_type,
                             max_seq_len=args.max_seq_len)
-    model = TagtreePredictModel(args, network)
+    model = PredictModel(args, network)
     load_prefix = os.path.join(args.load_dir, "checkpoint_best.pt")
     model.load(load_prefix)
 
     return model, bert_dir
 
 
-def get_onesp(processor, model, bert_dir, test_raw):
+def get_onesp(processor, model, test_raw):
     test_examples = processor.get_examples(test_raw)
-    test_features = processor.convert_examples_to_features(test_examples, args.max_seq_len, bert_dir)
+    test_features = processor.convert_examples_to_features(test_examples)
     test_dataset = ClassifyTestDataset(test_features, args)
     test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, num_workers=4)
     pred_lis = model.predict(test_loader)
     res_df = pd.DataFrame(pred_lis, columns=['卖点', '标签', '分数'])
 
     ret = pd.merge(test_raw, res_df).sort_values(by='分数', ascending=False)
-
+    del test_dataset
+    del test_loader
     return ret
 
 
@@ -88,6 +89,18 @@ def hand_raw_text(df, g_id, g_name):
                 l.append([row[g_id], row[g_name], w])
     return pd.DataFrame(l, columns=[g_id, g_name, '卖点'])
 
+
+def filter_tag(good):
+    new_good = []
+    for sp in good:
+        flag = True
+        for tag in taglist:
+            if tag in sp:
+                flag = False
+                break
+        if flag:
+            new_good.append(sp)
+    return new_good
 
 def main():
     start_time = time.time()
@@ -109,21 +122,27 @@ def main():
     df = hand_raw_text(raw_df, g_id, g_name)
     logger.info('total data size: {}\n'.format(len(df)))
     cate_ids = list(set(df[g_id].values))
-    model, bert_dir = load_model(args)
-    processor = CLASSIFYTestProcessor(args.max_seq_len)
 
+    model, bert_dir = load_model(args)
+    processor = CLASSIFYTestProcessor(bert_dir, args.max_seq_len)
+    logger.info('model_has_build')
     reslis = []
     for i in tqdm(range(len(cate_ids))):
         cate_id = cate_ids[i]
         raw = df[df[g_id] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
-        ret = get_onesp(processor, model, bert_dir, raw)
+
+        ret = get_onesp(processor, model, raw)
         name = raw.iloc[0][g_name]
         good = ret[ret['分数'] > args.limit_score]
+
         if g_id == 'base_sku_id':
-            goodsp = good.head()['卖点'].to_list()
+            goodsp = good.head(15)['卖点'].to_list()
+            goodsp = filter_tag(goodsp)[:5]
         else:
-            goodsp = good.head(args.top_sp)['卖点'].to_list()
+            goodsp = good.head(args.top_sp+10)['卖点'].to_list()
+            goodsp = filter_tag(goodsp)[:args.top_sp]
+
         reslis.append([cate_id, name, goodsp])
     if not os.path.exists(args.test_save_dir):
         os.mkdir(args.test_save_dir)

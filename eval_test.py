@@ -7,7 +7,7 @@ from pprint import pprint
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 
-from src.models.model import TagtreePredictModel
+from src.models.model import PredictModel
 from src.models.modeling_cls import ClassifyModel
 from src.utils import options
 from src.utils.dataset_utils import ClassifyTestDataset
@@ -64,7 +64,7 @@ def main():
                             dropout_prob=args.dropout,
                             loss_type=args.loss_type,
                             max_seq_len=args.max_seq_len)
-    model = TagtreePredictModel(args, network)
+    model = PredictModel(args, network)
     load_prefix = os.path.join(args.load_dir, "checkpoint_best.pt")
     model.load(load_prefix)
     pred_lis = model.predict(test_loader)
