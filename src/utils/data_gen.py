@@ -49,9 +49,9 @@ class PredictBatchGen(object):
             self.offset += 1
             input_ids_batch, attention_mask_batch, token_type_ids_batch, raw_text_batch = zip(*batch)
             bsz = len(batch)
-            token_ids = torch.LongTensor(bsz, 512)
-            attention_masks = torch.LongTensor(bsz, 512)
-            token_type_ids = torch.LongTensor(bsz, 512).fill_(0)
+            token_ids = torch.LongTensor(bsz, self.args.max_seq_len)
+            attention_masks = torch.LongTensor(bsz, self.args.max_seq_len)
+            token_type_ids = torch.LongTensor(bsz, self.args.max_seq_len).fill_(0)
             raw_texts = []
 
             for i in range(bsz):
