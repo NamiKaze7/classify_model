@@ -5,6 +5,7 @@ import time
 import os
 from pprint import pprint
 from tqdm import tqdm
+from src.utils.data_gen import PredictBatchGen
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 import xlsxwriter
@@ -64,17 +65,15 @@ def load_model(args):
     return model, bert_dir
 
 
-def get_onesp(processor, model, test_raw):
+def get_onesp(processor, model, test_raw, args):
     test_examples = processor.get_examples(test_raw)
     test_features = processor.convert_examples_to_features(test_examples)
-    test_dataset = ClassifyTestDataset(test_features, args)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size, num_workers=0)
+    test_loader = PredictBatchGen(args, test_features)
     pred_lis = model.predict(test_loader)
     res_df = pd.DataFrame(pred_lis, columns=['卖点', '标签', '分数'])
 
     ret = pd.merge(test_raw, res_df).sort_values(by='分数', ascending=False)
-    del test_dataset
-    del test_loader
+
     return ret
 
 
@@ -132,7 +131,7 @@ def main():
         cate_id = cate_ids[i]
         raw = df[df[g_id] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
-        ret = get_onesp(processor, model, raw)
+        ret = get_onesp(processor, model, raw, args)
         name = raw.iloc[0][g_name]
         good = ret[ret['分数'] > args.limit_score]
 
