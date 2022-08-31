@@ -119,9 +119,9 @@ class CLASSIFYTestProcessor:
                                                  return_token_type_ids=True,
                                                  return_attention_mask=True)
 
-        token_ids = encode_dict['input_ids']
-        attention_masks = encode_dict['attention_mask']
-        token_type_ids = encode_dict['token_type_ids']
+        token_ids = np.array(encode_dict['input_ids'])
+        attention_masks = np.array(encode_dict['attention_mask'])
+        token_type_ids = np.array(encode_dict['token_type_ids'])
 
         callback_info = BaseFeature(token_ids=token_ids,
                                     attention_masks=attention_masks,

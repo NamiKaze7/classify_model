@@ -50,7 +50,7 @@ def load_model(args):
         bert_model = BertModel.from_pretrained(args.bert_model)
         bert_dir = args.bert_model
     elif args.encoder == 'roberta':
-        bert_model = BertModel.from_pretrained(args.roberta_model)
+        bert_model = RobertaModel.from_pretrained(args.roberta_model)
         bert_dir = args.roberta_model
 
     network = ClassifyModel(bert_model=bert_model, num_tags=args.num_tags,
@@ -102,6 +102,7 @@ def filter_tag(good):
             new_good.append(sp)
     return new_good
 
+
 def main():
     start_time = time.time()
     logger.info('----------------开始计时----------------')
@@ -117,7 +118,7 @@ def main():
         g_name = 'base_sku_name'
 
     raw_df = pd.read_csv(args.test_path, sep='\t', error_bad_lines=False)[[g_id, g_name,
-                                                    'review_body']].dropna()
+                                                                           'review_body']].dropna()
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df, g_id, g_name)
     logger.info('total data size: {}\n'.format(len(df)))
@@ -131,8 +132,6 @@ def main():
         cate_id = cate_ids[i]
         raw = df[df[g_id] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
-        if i ==0:
-            logger.info('get_onesp')
         ret = get_onesp(processor, model, raw)
         name = raw.iloc[0][g_name]
         good = ret[ret['分数'] > args.limit_score]
@@ -141,7 +140,7 @@ def main():
             goodsp = good.head(15)['卖点'].to_list()
             goodsp = filter_tag(goodsp)[:5]
         else:
-            goodsp = good.head(args.top_sp+10)['卖点'].to_list()
+            goodsp = good.head(args.top_sp + 10)['卖点'].to_list()
             goodsp = filter_tag(goodsp)[:args.top_sp]
 
         reslis.append([cate_id, name, goodsp])

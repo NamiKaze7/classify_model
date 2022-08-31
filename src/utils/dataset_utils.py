@@ -90,14 +90,14 @@ class ClassifyTestDataset(Dataset):
 
     def __getitem__(self, index):
         if self.cuda:
-            data = {'token_ids': torch.LongTensor(np.array(self.test_data[index].token_ids)).cuda(),
-                    'attention_masks': torch.LongTensor(np.array(self.test_data[index].attention_masks)).cuda(),
-                    'token_type_ids': torch.LongTensor(np.array(self.test_data[index].token_type_ids)).cuda(),
+            data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids).cuda(),
+                    'attention_masks': torch.LongTensor(self.test_data[index].attention_masks).cuda(),
+                    'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids).cuda(),
                     'raw_text': self.test_data[index].raw_text}
         else:
-            data = {'token_ids': torch.LongTensor(np.array(self.test_data[index].token_ids)),
-                    'attention_masks': torch.LongTensor(np.array(self.test_data[index].token_ids)),
-                    'token_type_ids': torch.LongTensor(np.array(self.test_data[index].token_ids)),
+            data = {'token_ids': torch.LongTensor(self.test_data[index].token_ids),
+                    'attention_masks': torch.LongTensor(self.test_data[index].attention_masks),
+                    'token_type_ids': torch.LongTensor(self.test_data[index].token_type_ids),
                     'raw_text': self.test_data[index].raw_text}
 
         return data
