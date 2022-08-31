@@ -131,7 +131,8 @@ def main():
         cate_id = cate_ids[i]
         raw = df[df[g_id] == cate_id]
         raw = raw.drop_duplicates(subset=['卖点'])
-
+        if i ==0:
+            logger.info('get_onesp')
         ret = get_onesp(processor, model, raw)
         name = raw.iloc[0][g_name]
         good = ret[ret['分数'] > args.limit_score]
