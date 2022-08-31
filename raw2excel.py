@@ -50,7 +50,7 @@ def load_model(args):
         bert_model = BertModel.from_pretrained(args.bert_model)
         bert_dir = args.bert_model
     elif args.encoder == 'roberta':
-        bert_model = RobertaModel.from_pretrained(args.roberta_model)
+        bert_model = BertModel.from_pretrained(args.roberta_model)
         bert_dir = args.roberta_model
 
     network = ClassifyModel(bert_model=bert_model, num_tags=args.num_tags,
@@ -116,7 +116,7 @@ def main():
         g_id = 'base_sku_id'
         g_name = 'base_sku_name'
 
-    raw_df = pd.read_csv(args.test_path, sep='\t')[[g_id, g_name,
+    raw_df = pd.read_csv(args.test_path, sep='\t', error_bad_lines=False)[[g_id, g_name,
                                                     'review_body']].dropna()
     logger.info('total raw data size: {}\n'.format(len(raw_df)))
     df = hand_raw_text(raw_df, g_id, g_name)
