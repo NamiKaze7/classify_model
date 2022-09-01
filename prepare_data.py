@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     set_seed(opt.seed)
     if not os.path.exists(opt.save_dir):
-        os.mkdir(opt.save_dir)
+        os.makedirs(opt.save_dir)
     train_path = os.path.join(opt.data_dir, 'sp_train.txt')
     dev_path = os.path.join(opt.data_dir, 'sp_dev.txt')
     test_path = os.path.join(opt.data_dir, 'sp_test.txt')
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     pickle.dump(dev_features, open(save_path, 'wb'))
     logger.info('save dev data in {}'.format(save_path))
     logger.info('read dev data from {}'.format(dev_path))
-
+    '''
     test = pd.read_csv(test_path, sep='\t')
     processor = CLASSIFYProcessor(opt.max_seq_len)
     test_examples = processor.get_examples(test)
@@ -76,6 +76,6 @@ if __name__ == '__main__':
     save_path = os.path.join(opt.save_dir, 'test.pkl')
     pickle.dump(test_features, open(save_path, 'wb'))
     logger.info('save dev data in {}'.format(save_path))
-
+    '''
     time_dif = get_time_dif(start_time)
     logging.info("----------本次容器运行时长：{}-----------".format(time_dif))

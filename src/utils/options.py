@@ -4,14 +4,14 @@ import torch
 
 def add_data_args(parser: argparse.ArgumentParser):
     parser.add_argument("--gpu_num", default=torch.cuda.device_count(), type=int, help="training gpu num.")
-    parser.add_argument("--save_dir", default="./model_saved/checkpoint", type=str, help="save dir.")
+    parser.add_argument("--save_dir", default="./model_saved/checkpoint-5", type=str, help="save dir.")
     parser.add_argument("--log_file", default="train.log", type=str, help="train log file.")
-    parser.add_argument("--load_dir", default="./model_saved/checkpoint", type=str, help="load dir.")
+    parser.add_argument("--load_dir", default="./model_saved/checkpoint-5", type=str, help="load dir.")
     parser.add_argument("--get_result", default="", type=str, help="get xlsx file.")
     parser.add_argument('--max_seq_len', default=8, type=int)
-    parser.add_argument('--train_path', type=str, default='data/roberta_wwm/train.pkl',
+    parser.add_argument('--train_path', type=str, default='data/train_data5/roberta_wwm/train.pkl',
                         help='train data path')
-    parser.add_argument('--dev_path', type=str, default='data/roberta_wwm/dev.pkl',
+    parser.add_argument('--dev_path', type=str, default='data/train_data5/roberta_wwm/dev.pkl',
                         help='dev data path')
 
 
@@ -64,7 +64,7 @@ def add_raw_args(parser):
 
 
 def add_test_args(parser):
-    parser.add_argument('--test_path', default='./file/sp_test.txt', type=str)
+    parser.add_argument('--test_path', default='./file/raw_data1/sp_test.txt', type=str)
     parser.add_argument('--test_save_dir', default='./model_result/test1', type=str)
     parser.add_argument('--test_log_file', default='test.log', type=str)
     parser.add_argument('--limit_score', default=0.8, type=float)

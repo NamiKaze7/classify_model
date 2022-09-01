@@ -16,6 +16,14 @@ from src.utils.train_utils import create_logger, set_environment
 from transformers import RobertaModel, BertModel
 from src.models.modeling_cls import ClassifyModel
 import pandas as pd
+cpu_num = 1
+os.environ["OMP_NUM_THREADS"] = str(cpu_num)
+os.environ["OPENBLAS_NUM_THREADS"] = str(cpu_num)
+os.environ["MKL_NUM_THREADS"] = str(cpu_num)
+os.environ["VECLIB_MAXIMUM_THREADS"] = str(cpu_num)
+os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_num)
+torch.set_num_threads(cpu_num)
+
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser("training task.")

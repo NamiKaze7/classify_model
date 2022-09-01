@@ -13,10 +13,10 @@ class Args:
                             help='the output dir for models checkpoints')
         # data dir
         
-        parser.add_argument('--data_dir', default='./file',
+        parser.add_argument('--data_dir', default='./file/raw_data5',
                            help='source data dir to prepare')
         
-        parser.add_argument('--save_dir', default='./data',
+        parser.add_argument('--save_dir', default='./data/train_data5',
                            help='source data dir to prepare')
         # end prepare
         parser.add_argument('--bert_dir', default='../pretrained_models/chinese-roberta-wwm-ext',
