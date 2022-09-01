@@ -46,13 +46,14 @@ with open(args_path, "w") as f:
 args.batch_size = args.batch_size // args.gradient_accumulation_steps
 
 logger = create_logger("Model Training", log_file=os.path.join(args.save_dir, args.log_file))
-logger.info("num_workers:{0}.... gpu_nums:{1}".format(args.num_workers, args.gpu_num))
+
 pprint(args)
 set_environment(args.seed, args.cuda)
 
 
 def main():
     best_result = float("-inf")
+    logger.info("num_workers:{0}.... gpu_nums:{1}".format(args.num_workers, args.gpu_num))
     logger.info("Loading data...")
     train_dataset = ClassifyDataset(args.train_path, args, 'train')
     dev_dataset = ClassifyInferDataset(args.dev_path, args)
