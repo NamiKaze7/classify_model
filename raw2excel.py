@@ -77,7 +77,8 @@ def load_model(args):
 def get_onesp(processor, model, test_raw, args):
     test_examples = processor.get_examples(test_raw)
     test_features = processor.convert_examples_to_features(test_examples)
-    test_loader = PredictBatchGen(args, test_features)
+    test_dataset = ClassifyTestDataset(test_features)
+    test_loader = DataLoader(test_dataset)
     pred_lis = model.predict(test_loader)
     res_df = pd.DataFrame(pred_lis, columns=['卖点', '标签', '分数'])
 

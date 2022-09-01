@@ -62,7 +62,7 @@ def main():
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=args.batch_size,
                               sampler=train_sampler,
-                              num_workers=args.num_workers)
+                              num_workers=0)
     dev_loader = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size)
     logger.info('----------------Build model...----------------')
 
