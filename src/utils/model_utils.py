@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class LabelSmoothingCrossEntropy(nn.Module):
     def __init__(self, eps=0.1, reduction='mean', ignore_index=-100):
         super(LabelSmoothingCrossEntropy, self).__init__()
@@ -29,7 +30,8 @@ class FocalLoss(nn.Module):
     def __init__(self, gamma=2, weight=None, reduction='mean', ignore_index=-100):
         super(FocalLoss, self).__init__()
         self.gamma = gamma
-        self.weight = weight
+        # self.weight = weight
+        self.weight = torch.tensor([.5, 1.5])
         self.ignore_index = ignore_index
         self.reduction = reduction
 
@@ -63,4 +65,3 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
-
