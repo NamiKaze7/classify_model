@@ -37,6 +37,7 @@ def add_train_args(parser: argparse.ArgumentParser):
     parser.add_argument("--eps", default=1e-8, type=float, help="ema gamma.")
     parser.add_argument('--loss_type', default='ls_ce',
                         help='loss type for span bert')
+    parser.add_argument("--num_workers", default=4, type=int, help="ema gamma.")
 
 
 def add_bert_args(parser: argparse.ArgumentParser):

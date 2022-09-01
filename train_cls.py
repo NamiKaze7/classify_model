@@ -16,13 +16,7 @@ from src.utils.train_utils import create_logger, set_environment
 from transformers import RobertaModel, BertModel
 from src.models.modeling_cls import ClassifyModel
 import pandas as pd
-cpu_num = 1
-os.environ["OMP_NUM_THREADS"] = str(cpu_num)
-os.environ["OPENBLAS_NUM_THREADS"] = str(cpu_num)
-os.environ["MKL_NUM_THREADS"] = str(cpu_num)
-os.environ["VECLIB_MAXIMUM_THREADS"] = str(cpu_num)
-os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_num)
-torch.set_num_threads(cpu_num)
+
 
 from tqdm import tqdm
 
@@ -35,6 +29,14 @@ args = parser.parse_args()
 
 if not os.path.exists(args.save_dir):
     os.makedirs(args.save_dir)
+
+cpu_num = args.num_workers
+os.environ["OMP_NUM_THREADS"] = str(cpu_num)
+os.environ["OPENBLAS_NUM_THREADS"] = str(cpu_num)
+os.environ["MKL_NUM_THREADS"] = str(cpu_num)
+os.environ["VECLIB_MAXIMUM_THREADS"] = str(cpu_num)
+os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_num)
+torch.set_num_threads(cpu_num)
 
 args.cuda = args.gpu_num > 0
 args_path = os.path.join(args.save_dir, "args.json")
@@ -59,7 +61,7 @@ def main():
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=args.batch_size,
                               sampler=train_sampler,
-                              num_workers=0)
+                              num_workers=args.num_workers)
     dev_loader = DataLoader(dataset=dev_dataset, batch_size=args.eval_batch_size)
     logger.info('----------------Build model...----------------')
 

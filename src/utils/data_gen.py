@@ -14,7 +14,6 @@ class PredictBatchGen(object):
             token_type_ids = torch.from_numpy(item.token_type_ids)
             raw_text = item.raw_text
             all_data.append((input_ids, attention_mask, token_type_ids, raw_text))
-        print("Load data size {}.".format(len(all_data)))
         self.data = PredictBatchGen.make_batches(all_data,
                                                  args.batch_size if self.is_train else args.eval_batch_size,
                                                  self.is_train)

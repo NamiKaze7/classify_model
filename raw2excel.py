@@ -15,6 +15,7 @@ from src.models.modeling_cls import ClassifyModel
 from src.utils import options
 from src.utils.dataset_utils import ClassifyTestDataset
 from src.utils.train_utils import create_logger, set_environment
+import torch
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -31,6 +32,14 @@ options.add_data_args(parser)
 options.add_bert_args(parser)
 options.add_test_args(parser)
 args = parser.parse_args()
+
+cpu_num = args.num_workers
+os.environ["OMP_NUM_THREADS"] = str(cpu_num)
+os.environ["OPENBLAS_NUM_THREADS"] = str(cpu_num)
+os.environ["MKL_NUM_THREADS"] = str(cpu_num)
+os.environ["VECLIB_MAXIMUM_THREADS"] = str(cpu_num)
+os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_num)
+torch.set_num_threads(cpu_num)
 
 if not os.path.exists(args.test_save_dir):
     os.mkdir(args.test_save_dir)
