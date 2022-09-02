@@ -42,7 +42,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(cpu_num)
 torch.set_num_threads(cpu_num)
 
 if not os.path.exists(args.test_save_dir):
-    os.mkdir(args.test_save_dir)
+    os.makedirs(args.test_save_dir)
 logger = create_logger("Model Testing", log_file=os.path.join(args.test_save_dir, args.test_log_file))
 
 args.cuda = args.gpu_num > 0

@@ -9,8 +9,6 @@ class Args:
     @staticmethod
     def initialize(parser: argparse.ArgumentParser):
 
-        parser.add_argument('--output_dir', default='./out/',
-                            help='the output dir for models checkpoints')
         # data dir
         
         parser.add_argument('--data_dir', default='./file/raw_data5',
