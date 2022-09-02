@@ -70,7 +70,7 @@ class CLASSIFYProcessor:
         examples = []
         for i,d in tqdm(raw_examples.iterrows()):
 
-            sent = d['卖点'][:self.max_x_length - 2]
+            sent = d['text'][:self.max_x_length - 2]
             label = d['label']
             examples.append(InputExample(text=sent, label=label))
 
@@ -86,7 +86,7 @@ class CLASSIFYTestProcessor:
         examples = []
         for d in raw_examples.iterrows():
             d = d[1]
-            sent = d['卖点'][:self.max_seq_len - 2]
+            sent = d['text'][:self.max_seq_len - 2]
             examples.append(InputTestExample(text=sent))
 
         return examples
@@ -112,9 +112,18 @@ class CLASSIFYTestProcessor:
 
     def convert_example(self, example: InputTestExample):
         raw_text = example.text
-
-        tokens = fine_grade_tokenize(raw_text, self.tokenizer)
-        assert len(tokens) == len(raw_text)
+        if '[SEP]' in raw_text:
+            tokens = []
+            split_sentences = raw_text.split('[SEP]')
+            for idx in range(len(split_sentences)):
+                if idx != 0:
+                    tokens.append('[SEP]')
+                    tokens.extend(fine_grade_tokenize(split_sentences[idx], self.tokenizer))
+                else:
+                    tokens.extend(fine_grade_tokenize(split_sentences[idx], self.tokenizer))
+        else:
+            tokens = fine_grade_tokenize(raw_text, self.tokenizer)
+            assert len(tokens) == len(raw_text)
 
         encode_dict = self.tokenizer.encode_plus(text=tokens,
                                                  padding='max_length',
@@ -159,8 +168,18 @@ def fine_grade_tokenize(raw_text, tokenizer):
 def convert_example(example: InputExample, tokenizer: BertTokenizer, max_seq_len):
     raw_text = example.text
 
-    tokens = fine_grade_tokenize(raw_text, tokenizer)
-    assert len(tokens) == len(raw_text)
+    if '[SEP]' in raw_text:
+        tokens = []
+        split_sentences = raw_text.split('[SEP]')
+        for idx in range(len(split_sentences)):
+            if idx != 0:
+                tokens.append('[SEP]')
+                tokens.extend(fine_grade_tokenize(split_sentences[idx], tokenizer))
+            else:
+                tokens.extend(fine_grade_tokenize(split_sentences[idx], tokenizer))
+    else:
+        tokens = fine_grade_tokenize(raw_text, tokenizer)
+        assert len(tokens) == len(raw_text)
 
     encode_dict = tokenizer.encode_plus(text=tokens,
                                         padding='max_length',

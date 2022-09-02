@@ -3,7 +3,7 @@ from typing import Dict
 
 import torch
 import torch.nn as nn
-from transformers import BertModel
+# from transformers import BertModel
 from src.utils.model_utils import LabelSmoothingCrossEntropy, FocalLoss
 from src.utils.metrics import MetricsF1
 from src.utils.allennlp import replace_masked_values
@@ -36,7 +36,7 @@ class BaseModel(nn.Module):
                     nn.init.zeros_(module.bias)
 
 
-class ClassifyModel(BaseModel):
+class ClassifyModel_CLS(BaseModel):
     def __init__(self,
                  bert_model,
                  num_tags,
@@ -49,42 +49,36 @@ class ClassifyModel(BaseModel):
         tag the subject and object corresponding to the predicate
         :param loss_type: train loss type in ['ce', 'ls_ce', 'focal']
         """
-        super(ClassifyModel, self).__init__(bert_model, dropout_prob=dropout_prob)
+        super(ClassifyModel_CLS, self).__init__(bert_model, dropout_prob=dropout_prob)
 
         self._metrics = MetricsF1(num_tags)
         out_dims = self.bert_config.hidden_size
-
-        mid_linear_dims = kwargs.pop('mid_linear_dims', 128)
 
         self.num_tags = num_tags
         self.perm = torch.arange(0, num_tags).unsqueeze(0)
         if args.cuda:
             self.perm = self.perm.cuda()
-        self.mid_linear = nn.Sequential(
-            nn.Linear(out_dims, mid_linear_dims),
-            nn.ReLU(),
-            nn.Dropout(dropout_prob)
-        )
 
-        out_dims = mid_linear_dims
+        self.tags_fc = nn.Linear(out_dims, num_tags)
 
-        self.tags_fc = nn.Linear(out_dims * max_seq_len, num_tags)
-        weight = [.5] * (num_tags - 1) + [.5 * num_tags]
+        weight = [.5]*(num_tags-1) + [.5*num_tags]
         self.weight = torch.tensor(weight)
         if args.cuda:
             self.weight = torch.tensor(weight).cuda()
-        reduction = 'mean'
+        reduction = 'none'
         if loss_type == 'ce':
             self.criterion = nn.CrossEntropyLoss(reduction=reduction)
         elif loss_type == 'ls_ce':
             self.criterion = LabelSmoothingCrossEntropy(reduction=reduction)
+        elif loss_type == 'mse':
+            self.criterion = nn.MSELoss(reduction=reduction)
         else:
             self.criterion = FocalLoss(reduction=reduction, weight=self.weight)
 
         self.loss_weight = nn.Parameter(torch.FloatTensor(1), requires_grad=True)
         self.loss_weight.data.fill_(-0.2)
 
-        init_blocks = [self.mid_linear, self.tags_fc]
+        init_blocks = [self.tags_fc]
 
         self._init_weights(init_blocks)
 
@@ -94,7 +88,7 @@ class ClassifyModel(BaseModel):
                 token_type_ids,
                 labels,
                 raw_text,
-                mode='null'):
+                mode='train'):
         output_dict = {}
         bert_outputs = self.bert_module(
             input_ids=token_ids,
@@ -103,24 +97,23 @@ class ClassifyModel(BaseModel):
         )
         seq_out = bert_outputs[0]  # last_hidden_state
         seq_out = replace_masked_values(seq_out, attention_masks.unsqueeze(-1), 0)
-        seq_out = self.mid_linear(seq_out)
+        logits = self.tags_fc(seq_out[:, 0, :])
 
-        seq_out = torch.reshape(seq_out, (seq_out.shape[0], -1))
-
-        logits = self.tags_fc(seq_out)
         if labels is not None:
-            loss = self.criterion(logits, labels)
+            loss = self.criterion(logits, labels).mean()
         else:
             loss = -1
-
-        output_dict['logits'] = logits
-        output_dict['loss'] = loss
-        output_dict['label'] = labels
-        pred = torch.max(logits, 1).indices.unsqueeze(1)
-        prob = torch.softmax(logits, -1)
-        output_dict['pred'] = pred
-        if mode == 'train' or mode == 'eval':
-            self._metrics(labels, pred, raw_text, prob)
+        if self.num_tags != 1:
+            output_dict['logits'] = logits
+            output_dict['loss'] = loss
+            pred = torch.max(logits, 1).indices.unsqueeze(1)
+            output_dict['pred'] = pred
+        else:
+            output_dict['logits'] = logits
+            output_dict['loss'] = loss
+            pred = logits
+            output_dict['pred'] = logits
+        self._metrics(labels, pred, raw_text)
         return output_dict
 
     def predict(self,
@@ -135,18 +128,18 @@ class ClassifyModel(BaseModel):
             token_type_ids=token_type_ids
         )
         seq_out = bert_outputs[0]  # last_hidden_state
-        seq_out = replace_masked_values(seq_out, attention_masks.unsqueeze(-1), 0)
-        seq_out = self.mid_linear(seq_out)
 
-        seq_out = torch.reshape(seq_out, (seq_out.shape[0], -1))
-
-        logits = self.tags_fc(seq_out)
-
-        prob = torch.softmax(logits, -1)
-        pred = torch.max(logits, 1).indices.unsqueeze(1)
-        output_dict['raw_text'] = raw_text
-        output_dict['pred_label'] = pred
-        output_dict['pred_score'] = (prob * self.perm).sum(-1).unsqueeze(1)
+        logits = self.tags_fc(seq_out[:, 0, :])
+        if self.num_tags != 1:
+            prob = torch.softmax(logits, -1)
+            top = torch.topk(prob, 1)
+            output_dict['raw_text'] = raw_text
+            output_dict['pred_label'] = top.indices
+            output_dict['pred_score'] = (prob * self.perm).sum(-1).unsqueeze(1)
+        else:
+            output_dict['raw_text'] = raw_text
+            output_dict['pred_label'] = logits
+            output_dict['pred_score'] = logits
         return output_dict
 
     def get_metrics(self, logger=None):

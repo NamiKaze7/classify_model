@@ -13,35 +13,33 @@ class MetricsF1(object):
     among other things).
     """
 
-    def __init__(self, mode=None) -> None:
-        self._total_TP = 0
-        self._total_TN = 0
-        self._total_FN = 0
-        self._total_FP = 0
+    def __init__(self, num_tags=2, mode=None) -> None:
+        self.num_tags = num_tags
+        self._total_TP = np.array([0] * num_tags)
+        self._total_FN = np.array([1] * num_tags)
+        self._total_FP = np.array([1] * num_tags)
         self._count = 0
         self._total_acc = 0
         self._details = []
 
-    def __call__(self, gold, prediction, raw_text):
+    def __call__(self, gold, prediction, raw_text, prob):
         for i in range(len(prediction)):
             label = int(gold[i])
             pred = int(prediction[i])
+            score = float(prob[i][label])
             sp = raw_text[i]
-            if label == 1:
-                if pred == 1:
-                    self._total_TP += 1
-                else:
-                    self._total_FN += 1
+            if label == pred:
+                self._total_TP[label] += 1
             else:
-                if pred == 0:
-                    self._total_TN += 1
-                else:
-                    self._total_FP += 1
+                self._total_FN[label] += 1
+                self._total_FP[pred] += 1
             self._count += 1
             self._total_acc += pred == label
             it = {'raw_text': sp,
                   'acc': pred == label,
-                  'label': label
+                  'label': label,
+                  'pred': pred,
+                  'score': score
                   }
             self._details.append(it)
 
@@ -52,8 +50,8 @@ class MetricsF1(object):
         Average exact match and F1 score (in that order) as computed by the official DROP script
         over all inputs.
         """
-        precision = self._total_TP / (self._total_TP + self._total_FP)
-        recall = self._total_TP / (self._total_TP + self._total_FN)
+        precision = (self._total_TP / (self._total_TP + self._total_FP)).mean()
+        recall = (self._total_TP / (self._total_TP + self._total_FN)).mean()
         f1 = 2 * precision * recall / (precision + recall)
         acc = self._total_acc / self._count
         df = pd.DataFrame([precision, recall, f1, acc], index=['precision', 'recall', 'f1', 'acc'], columns=['score'])
@@ -64,10 +62,9 @@ class MetricsF1(object):
         return pd.DataFrame(self._details)
 
     def reset(self):
-        self._total_TP = 0
-        self._total_TN = 0
-        self._total_FN = 0
-        self._total_FP = 0
+        self._total_TP = np.array([0] * self.num_tags)
+        self._total_FN = np.array([1] * self.num_tags)
+        self._total_FP = np.array([1] * self.num_tags)
         self._count = 0
         self._total_acc = 0
         self._details = []

@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime
 
 from torch.utils.data import DataLoader, RandomSampler
-
+from src.models.modeling_clstoken import ClassifyModel_CLS
 from src.models.model import FineTuningModel
 from src.utils import options
 from pprint import pprint
@@ -16,7 +16,6 @@ from src.utils.train_utils import create_logger, set_environment
 from transformers import RobertaModel, BertModel
 from src.models.modeling_cls import ClassifyModel
 import pandas as pd
-
 
 from tqdm import tqdm
 
@@ -53,10 +52,22 @@ set_environment(args.seed, args.cuda)
 
 def main():
     best_result = float("-inf")
+    if os.path.exists('train.sh'):
+        with open('train.sh', 'r') as f:
+            logger.info("Run Code:\r\n {}".format(f.read()))
     logger.info("num_workers:{0}.... gpu_nums:{1}".format(args.num_workers, args.gpu_num))
     logger.info("Loading data...")
+
+    args.data_dir = os.path.join(args.data_dir, args.encoder)
+    args.train_path = os.path.join(args.data_dir, "train.pkl")
+    args.dev_path = os.path.join(args.data_dir, "dev.pkl")
+    args.test_path = os.path.join(args.data_dir, "test.pkl")
     train_dataset = ClassifyDataset(args.train_path, args, 'train')
     dev_dataset = ClassifyInferDataset(args.dev_path, args)
+    if args.test:
+        best_test_acc = 0.
+        test_dataset = ClassifyInferDataset(args.test_path, args)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=args.eval_batch_size)
     train_sampler = RandomSampler(train_dataset)
 
     train_loader = DataLoader(dataset=train_dataset,
@@ -70,15 +81,21 @@ def main():
     logger.info("Model update steps {}!".format(num_train_steps))
 
     logger.info(f"Build Cls {args.encoder} model.")
+    bert_model = None
     if args.encoder == 'bert':
         bert_model = BertModel.from_pretrained(args.bert_model)
     elif args.encoder == 'roberta':
         bert_model = RobertaModel.from_pretrained(args.roberta_model)
-
-    network = ClassifyModel(bert_model=bert_model, num_tags=args.num_tags,
-                            dropout_prob=args.dropout,
-                            loss_type=args.loss_type,
-                            max_seq_len=args.max_seq_len)
+    if args.cls_model == 'CLS':
+        network = ClassifyModel_CLS(bert_model=bert_model, num_tags=args.num_tags,
+                                    dropout_prob=args.dropout,
+                                    loss_type=args.loss_type,
+                                    max_seq_len=args.max_seq_len, args=args)
+    else:
+        network = ClassifyModel(bert_model=bert_model, num_tags=args.num_tags,
+                                dropout_prob=args.dropout,
+                                loss_type=args.loss_type,
+                                max_seq_len=args.max_seq_len, args=args)
     model = FineTuningModel(args, network, num_train_steps=num_train_steps)
     epoch_pre = 0
     if args.pretrained:
@@ -103,7 +120,6 @@ def main():
                 )
 
                 model.avg_reset()
-
         df = model.get_metrics(logger)['dataframe']
         if args.get_result:
             detail_df = model.get_raw_details()
@@ -118,18 +134,33 @@ def main():
         logger.info("Evaluate epoch:[{0:6}] eval loss[{1:.5f}]\r\n".format(epoch, model.dev_loss.avg))
 
         metrics = model.get_metrics(logger)
-        if args.get_result:
-            output_metric_path = os.path.join(args.save_dir, 'Experiments_dev.xlsx')
-            detail_df = model.get_raw_details()
-            with pd.ExcelWriter(output_metric_path, engine='xlsxwriter') as writer:
-                metrics['dataframe'].to_excel(writer, sheet_name='metrics')
-                detail_df.to_excel(writer, sheet_name='details')
+
         if metrics["acc"] > best_result:
             save_prefix = os.path.join(args.save_dir, "checkpoint_best")
             model.save(save_prefix, epoch)
             best_result = metrics["acc"]
-            logger.info("Best eval F1 {} at epoch {}.\r\n".format(best_result, epoch))
+            logger.info("Best eval ACC {} at epoch {}.\r\n".format(best_result, epoch))
+            if args.get_result:
+                output_metric_path = os.path.join(args.save_dir, 'Experiments_dev.xlsx')
+                detail_df = model.get_raw_details()
+                with pd.ExcelWriter(output_metric_path, engine='xlsxwriter') as writer:
+                    metrics['dataframe'].to_excel(writer, sheet_name='metrics')
+                    detail_df.to_excel(writer, sheet_name='details')
+        model.avg_reset()
+        model.reset()
 
+        if args.test:
+            model.evaluate(test_loader)
+            metrics = model.get_metrics(logger)
+            if metrics["acc"] > best_test_acc:
+                best_test_acc = metrics["acc"]
+                logger.info("Best test ACC {} at epoch {}.\r\n".format(best_test_acc, epoch))
+            if args.get_result:
+                output_metric_path = os.path.join(args.save_dir, 'Experiments_test.xlsx')
+                detail_df = model.get_raw_details()
+                with pd.ExcelWriter(output_metric_path, engine='xlsxwriter') as writer:
+                    metrics['dataframe'].to_excel(writer, sheet_name='metrics')
+                    detail_df.to_excel(writer, sheet_name='details')
         model.avg_reset()
         model.reset()
 

@@ -35,6 +35,9 @@ def text2token(raw_text, tokenizer, opt):
 
 
 if __name__ == '__main__':
+    if os.path.exists('pre.sh'):
+        with open('pre.sh', 'r') as f:
+            logger.info("Run Code:\r\n {}".format(f.read()))
     start_time = time.time()
     logging.info('----------------开始计时----------------')
     logging.info('----------------------------------------')
@@ -68,14 +71,13 @@ if __name__ == '__main__':
     pickle.dump(dev_features, open(save_path, 'wb'))
     logger.info('save dev data in {}'.format(save_path))
     logger.info('read dev data from {}'.format(dev_path))
-    '''
-    test = pd.read_csv(test_path, sep='\t')
-    processor = CLASSIFYProcessor(opt.max_seq_len)
-    test_examples = processor.get_examples(test)
-    test_features = convert_examples_to_features(test_examples, opt.max_seq_len, opt.bert_dir)
-    save_path = os.path.join(opt.save_dir, 'test.pkl')
-    pickle.dump(test_features, open(save_path, 'wb'))
-    logger.info('save dev data in {}'.format(save_path))
-    '''
+    if opt.test:
+        test = pd.read_csv(test_path, sep='\t')
+        processor = CLASSIFYProcessor(opt.max_seq_len)
+        test_examples = processor.get_examples(test)
+        test_features = convert_examples_to_features(test_examples, opt.max_seq_len, opt.bert_dir)
+        save_path = os.path.join(opt.save_dir, 'test.pkl')
+        pickle.dump(test_features, open(save_path, 'wb'))
+        logger.info('save dev data in {}'.format(save_path))
     time_dif = get_time_dif(start_time)
     logging.info("----------本次容器运行时长：{}-----------".format(time_dif))

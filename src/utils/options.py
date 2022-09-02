@@ -4,19 +4,17 @@ import torch
 
 def add_data_args(parser: argparse.ArgumentParser):
     parser.add_argument("--gpu_num", default=torch.cuda.device_count(), type=int, help="training gpu num.")
-    parser.add_argument("--save_dir", default="./model_saved/checkpoint-5", type=str, help="save dir.")
+    parser.add_argument("--save_dir", default="./model_saved/checkpoint-lc-1", type=str, help="save dir.")
     parser.add_argument("--log_file", default="train.log", type=str, help="train log file.")
-    parser.add_argument("--load_dir", default="./model_saved/checkpoint-5", type=str, help="load dir.")
+    parser.add_argument("--load_dir", default="./model_saved/checkpoint-lc-1", type=str, help="load dir.")
     parser.add_argument("--get_result", default="", type=str, help="get xlsx file.")
-    parser.add_argument('--max_seq_len', default=8, type=int)
-    parser.add_argument('--train_path', type=str, default='data/train_data5/roberta_wwm/train.pkl',
-                        help='train data path')
-    parser.add_argument('--dev_path', type=str, default='data/train_data5/roberta_wwm/dev.pkl',
-                        help='dev data path')
+    parser.add_argument('--max_seq_len', default=128, type=int)
+    parser.add_argument('--data_dir', type=str, default='data/train_long_com',
+                        help='data dir')
 
 
 def add_train_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--num_tags", default=2, type=int, help="cls label count")
+    parser.add_argument("--num_tags", default=5, type=int, help="cls label count")
     parser.add_argument('--gradient_accumulation_steps', type=int, default=1,
                         help="Number of updates steps to accumulate before performing a backward/update pass.")
     parser.add_argument("--log_per_updates", default=20, type=int, help="log pre update size.")
@@ -38,7 +36,11 @@ def add_train_args(parser: argparse.ArgumentParser):
     parser.add_argument('--loss_type', default='ls_ce',
                         help='loss type for span bert')
     parser.add_argument("--num_workers", default=4, type=int, help="ema gamma.")
-
+    parser.add_argument("--cls_model", default='mid', type=str, help="cls network.")
+    parser.add_argument("--test", default=False, type=bool, help="do test or not.")
+    parser.add_argument("--attack", default="", type=str, help="attack methods.")
+    parser.add_argument("--r_drop", default=False, type=bool, help="r_drop methods.")
+    parser.add_argument("--kl_weight", default=1.0, type=float, help="r_drop_weight methods.")
 
 def add_bert_args(parser: argparse.ArgumentParser):
     parser.add_argument("--bert_learning_rate", default=1.5e-5, type=float, help="bert learning rate.")

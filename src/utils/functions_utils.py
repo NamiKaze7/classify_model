@@ -49,8 +49,9 @@ def load_model_and_parallel(model, gpu_ids, ckpt_path=None, strict=True):
         if 'state_dict' in state:
             model.load_state_dict(state['state_dict'], strict=strict)
             best_acc = state['dev_acc']
-        else: model.load_state_dict(state, strict=strict)
-        
+        else:
+            model.load_state_dict(state, strict=strict)
+
     model.to(device)
 
     if len(gpu_ids) > 1:
@@ -126,7 +127,7 @@ def vote(entities_list, threshold=0.9):
     :param threshold:大于70%模型预测出来的实体才能被选中
     :return:
     """
-    threshold_nums = int(len(entities_list)*threshold)
+    threshold_nums = int(len(entities_list) * threshold)
     entities_dict = defaultdict(int)
     entities = defaultdict(list)
 
@@ -141,12 +142,13 @@ def vote(entities_list, threshold=0.9):
 
     return entities
 
+
 def ensemble_vote(entities_list, threshold=0.9):
     """
     针对 ensemble models 进行的 vote
     实体级别的投票方式  (entity_type, entity_start, entity_end, entity_text)
     """
-    threshold_nums = int(len(entities_list)*threshold)
+    threshold_nums = int(len(entities_list) * threshold)
     entities_dict = defaultdict(int)
 
     entities = defaultdict(list)
@@ -154,7 +156,7 @@ def ensemble_vote(entities_list, threshold=0.9):
     for _entities in entities_list:
         for _id in _entities:
             for _ent in _entities[_id]:
-                entities_dict[(_id, ) + _ent] += 1
+                entities_dict[(_id,) + _ent] += 1
 
     for key in entities_dict:
         if entities_dict[key] >= threshold_nums:
