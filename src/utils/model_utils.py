@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class LabelSmoothingCrossEntropy(nn.Module):
@@ -51,6 +52,10 @@ class AverageMeter(object):
     """Computes and stores the average and current value."""
 
     def __init__(self):
+        self.count = None
+        self.sum = None
+        self.avg = None
+        self.val = None
         self.reset()
 
     def reset(self):
@@ -65,3 +70,26 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+
+def to_one_hot(inp, num_classes):
+    y_onehot = torch.FloatTensor(inp.size(0), num_classes).to(inp.device)
+    y_onehot.zero_()
+    y_onehot.scatter_(1, inp.unsqueeze(1).data, 1)
+    return y_onehot
+
+
+def compute_kl_loss(p, q, pad_mask=None):
+    p_loss = F.kl_div(F.log_softmax(p, dim=-1), F.softmax(q, dim=-1), reduction='none')
+    q_loss = F.kl_div(F.log_softmax(q, dim=-1), F.softmax(p, dim=-1), reduction='none')
+
+    # pad_mask is for seq-level tasks
+    if pad_mask is not None:
+        p_loss.masked_fill_(pad_mask, 0.)
+        q_loss.masked_fill_(pad_mask, 0.)
+
+    # You can choose whether to use function "sum" and "mean" depending on your task
+    p_loss = p_loss.sum()
+    q_loss = q_loss.sum()
+
+    loss = (p_loss + q_loss) / 2
+    return loss

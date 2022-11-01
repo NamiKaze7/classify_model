@@ -1,7 +1,9 @@
 import logging
 import random
 import sys
+from datetime import timedelta
 from time import gmtime, strftime
+import time
 
 import numpy
 import torch
@@ -35,3 +37,14 @@ def create_logger(name, silent=False, to_disk=True, log_file=None):
         fh.setFormatter(formatter)
         log.addHandler(fh)
     return log
+
+
+def get_time_dif(start_time):
+    """
+    获取已经使用的时间
+    :param start_time:
+    :return:
+    """
+    end_time = time.time()
+    time_dif = end_time - start_time
+    return timedelta(seconds=int(round(time_dif)))

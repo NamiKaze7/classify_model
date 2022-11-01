@@ -20,6 +20,7 @@ def pad_seq(seq, seq_len, max_length):
     seq += [PAD_token for _ in range(max_length - seq_len)]
     return seq
 
+
 class InputExample:
     def __init__(self,
                  text,
@@ -68,8 +69,7 @@ class CLASSIFYProcessor:
 
     def get_examples(self, raw_examples):
         examples = []
-        for i,d in tqdm(raw_examples.iterrows()):
-
+        for i, d in tqdm(raw_examples.iterrows()):
             sent = d['text'][:self.max_x_length - 2]
             label = d['label']
             examples.append(InputExample(text=sent, label=label))
@@ -82,7 +82,7 @@ class CLASSIFYTestProcessor:
         self.max_seq_len = max_seq_len
         self.tokenizer = BertTokenizer(os.path.join(bert_dir, 'vocab.txt'))
 
-    def get_examples(self, raw_examples):
+    def get_df_examples(self, raw_examples):
         examples = []
         for d in raw_examples.iterrows():
             d = d[1]

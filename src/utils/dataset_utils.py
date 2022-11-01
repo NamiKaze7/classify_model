@@ -10,7 +10,7 @@ import pickle
 
 
 class ClassifyDataset(Dataset):
-    def __init__(self, train_path, opt, mode):
+    def __init__(self, train_path, opt, mode='train'):
         self.train_data = []
         self.train_data.extend(pickle.load(open(train_path, 'rb')))
         self.num_tags = opt.num_tags

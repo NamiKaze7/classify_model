@@ -1,11 +1,9 @@
 import argparse
 import json
-from src.utils.filter_tag import taglist
 import time
 import os
 from pprint import pprint
 from tqdm import tqdm
-from src.utils.data_gen import PredictBatchGen
 from torch.utils.data import DataLoader
 from transformers import BertModel, RobertaModel
 import xlsxwriter
@@ -22,7 +20,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import logging
 import pandas as pd
 
-from src.utils.functions_utils import get_time_dif
+from src.utils.train_utils import get_time_dif
 from src.utils.processor import CLASSIFYTestProcessor
 
 parser = argparse.ArgumentParser("training task.")
@@ -52,7 +50,8 @@ with open(args_path, "w") as f:
 pprint(args)
 set_environment(args.seed, args.cuda)
 
-
+with open('file/sell_point.txt', 'r') as f:
+    taglist = f.read().split('\n')
 def load_model(args):
     bert_dir = ''
     bert_model = None
@@ -75,7 +74,7 @@ def load_model(args):
 
 
 def get_onesp(processor, model, test_raw, args):
-    test_examples = processor.get_examples(test_raw)
+    test_examples = processor.get_df_examples(test_raw)
     test_features = processor.convert_examples_to_features(test_examples)
     test_dataset = ClassifyTestDataset(test_features, args)
     test_loader = DataLoader(test_dataset)
