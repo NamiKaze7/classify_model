@@ -152,7 +152,7 @@ class FineTuningModel(object):
         self.train_loss.update(torch.mean(loss).item(), 1)
         if self.args.gradient_accumulation_steps > 1:
             loss /= self.args.gradient_accumulation_steps
-        loss.backward()
+        loss.mean().backward()
         # attack training
         self.attack_train(tasks)
 
@@ -192,7 +192,7 @@ class FineTuningModel(object):
             self.attack.attack()
             # 对抗样本前向传播
             loss_adv = self.mnetwork(**tasks)['loss']
-            loss_adv.backward()
+            loss_adv.mean().backward()
             # 恢复扰动前状况
             self.attack.restore()
         elif self.args.attack == 'PGD' or self.args.attack == 'FreeAT':
@@ -204,7 +204,7 @@ class FineTuningModel(object):
                 else:
                     self.attack.restore_grad()
                 loss_adv = self.mnetwork(**tasks)['loss']
-                loss_adv.backward()
+                loss_adv.mean().backward()
             self.attack.restore()
 
     def model_augment(self, tasks):
