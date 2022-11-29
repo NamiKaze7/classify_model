@@ -42,6 +42,7 @@ def prepare_from_path(mode='train'):
     logger.info('read {0} data from {1}'.format(mode, path))
     raw_examples = pd.read_csv(path, sep='\t').dropna()
     raw_examples = processor.get_examples(raw_examples)
+    logger.info('load pretrained model from {}'.format(args.bert_dir))
     features = convert_examples_to_features(raw_examples, args.max_seq_len, args.bert_dir)
     save_path = os.path.join(args.save_dir, '{}.pkl'.format(mode))
     pickle.dump(features, open(save_path, 'wb'))
