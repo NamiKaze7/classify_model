@@ -49,7 +49,7 @@ set_environment(args.seed, args.cuda)
 def save_result(metrics, model, data='train'):
     if args.get_result:
         df = metrics['dataframe']
-        detail_df = model.get_raw_details()
+        detail_df = model.get_raw_details()[:1048576]
         output_metric_path = os.path.join(args.save_dir, 'Experiments_{}.xlsx'.format(data))
         with pd.ExcelWriter(output_metric_path, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False, sheet_name='metrics')
@@ -133,11 +133,11 @@ def main():
         for step, batch in enumerate(train_loader):
 
             model.update(batch)
-            if model.step % (args.log_per_updates * args.gradient_accumulation_steps) == 0 or model.step == 1:
+            if model.step % (args.log_per_updates * args.gradient_accumulation_steps) == 0:
                 logger.info(
                     "Updates[{0:6}] train loss[{1:.5f}] remaining[{2}].\r\n ".format(
                         model.updates, model.train_loss.avg,
-                        str((datetime.now() - train_start) / (step + 1) * (num_train_steps - step - 1)).split('.')[0])
+                        str((datetime.now() - train_start) / (model.step + 1) * (num_train_steps - model.step - 1)).split('.')[0])
                 )
 
                 model.avg_reset()

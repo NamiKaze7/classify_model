@@ -14,7 +14,7 @@ def add_data_args(parser: argparse.ArgumentParser):
     parser.add_argument("--save_dir", default="./model_saved/checkpoint-lc-1", type=str, help="save dir.")
     parser.add_argument("--load_dir", default="./model_saved/checkpoint-lc-1", type=str, help="load dir.")
     parser.add_argument("--log_file", default="train.log", type=str, help="train log file.")
-    parser.add_argument("--get_result", default="", type=str, help="get xlsx file.")
+    parser.add_argument("--get_result", default=False, type=bool, help="get xlsx file.")
 
 
 def add_train_args(parser: argparse.ArgumentParser):
