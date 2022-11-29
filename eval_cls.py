@@ -72,10 +72,8 @@ def load_model():
 
 
 def main():
-    if os.path.exists('run.sh'):
-        with open('run.sh', 'r') as f:
-            logger.info("Run Code:\r\n {}".format(f.read()))
     start_time = time.time()
+    logger.info(args)
     logger.info('----------------开始计时----------------')
     logger.info('----------------------------------------')
     logger.info('----------------Begin to build model..----------------')

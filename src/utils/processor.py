@@ -209,7 +209,7 @@ def convert_examples_to_features(examples, max_seq_len, bert_dir):
 
     logger.info(f'Convert {len(examples)} examples to features')
 
-    for i, example in enumerate(examples):
+    for i, example in tqdm(enumerate(examples)):
 
         tmp_callback = convert_example(
             example=example,

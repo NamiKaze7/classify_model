@@ -49,10 +49,7 @@ def prepare_from_path(mode='train'):
 
 
 if __name__ == '__main__':
-    if os.path.exists('pre.sh'):
-        with open('pre.sh', 'r') as f:
-            logger.info("Run Code:\r\n {}".format(f.read()))
-
+    logger.info(args)
     start_time = time.time()
     logging.info('----------------开始计时----------------')
     logging.info('----------------------------------------')
