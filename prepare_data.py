@@ -40,7 +40,7 @@ def prepare_from_path(mode='train'):
     # prepare data to pickle file (get token ids, attention mask)
     path = os.path.join(args.data_dir, 'sp_{}.txt'.format(mode))
     logger.info('read {0} data from {1}'.format(mode, path))
-    raw_examples = pd.read_csv(path, sep='\t').dropna()
+    raw_examples = pd.read_csv(path, sep='\t').fillna('')
     raw_examples = processor.get_examples(raw_examples)
     logger.info('load pretrained model from {}'.format(args.bert_dir))
     features = convert_examples_to_features(raw_examples, args.max_seq_len, args.bert_dir)
