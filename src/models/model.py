@@ -284,6 +284,10 @@ class FineTuningModel(object):
         other_path = prefix + ".ot"
         torch.save(other_params, other_path)
         torch.save(network_state, state_path)
+        state_path = prefix + "_{}.pt".format(epoch)
+        other_path = prefix + "_{}.ot".format(epoch)
+        torch.save(other_params, other_path)
+        torch.save(network_state, state_path)
         print('model saved to {}'.format(prefix))
 
     def load(self, prefix):

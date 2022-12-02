@@ -26,6 +26,10 @@ args = parser.parse_args()
 if not os.path.exists(args.save_dir):
     os.makedirs(args.save_dir)
 
+args.detail_save_dir = os.path.join(args.save_dir, 'details/')
+if not os.path.exists(args.detail_save_dir):
+    os.makedirs(args.detail_save_dir)
+
 # CPU workers
 cpu_num = args.num_workers
 os.environ["OMP_NUM_THREADS"] = str(cpu_num)
@@ -46,11 +50,11 @@ pprint(args)
 set_environment(args.seed, args.cuda)
 
 
-def save_result(metrics, model, data='train'):
+def save_result(metrics, model, epoch, data='train'):
     if args.get_result:
         df = metrics['dataframe']
         detail_df = model.get_raw_details()[:1048576]
-        output_metric_path = os.path.join(args.save_dir, 'Experiments_{}.xlsx'.format(data))
+        output_metric_path = os.path.join(args.detail_save_dir, 'Experiments_{}_{}.xlsx'.format(data, epoch))
         with pd.ExcelWriter(output_metric_path, engine='xlsxwriter') as writer:
             df.to_excel(writer, index=False, sheet_name='metrics')
             detail_df.to_excel(writer, index=False, sheet_name='details')
@@ -144,7 +148,7 @@ def main():
         train_metrics = model.get_metrics(logger)
         if train_metrics['acc'] > best_train_acc:
             best_train_acc = train_metrics['acc']
-            save_result(train_metrics, model, data='train')
+            save_result(train_metrics, model, epoch, data='train')
         model.reset()
         model.avg_reset()
 
@@ -158,7 +162,7 @@ def main():
             model.save(save_prefix, epoch)
             best_eval_acc = dev_metrics["acc"]
             logger.info("Best eval ACC {} at epoch {}.\r\n".format(best_eval_acc, epoch))
-            save_result(dev_metrics, model, data='dev')
+            save_result(dev_metrics, model, epoch, data='dev')
         model.avg_reset()
         model.reset()
 
@@ -169,7 +173,7 @@ def main():
             if test_metrics["acc"] > best_test_acc:
                 best_test_acc = test_metrics["acc"]
                 logger.info("Best test ACC {} at epoch {}.\r\n".format(best_test_acc, epoch))
-                save_result(test_metrics, model, data='test')
+                save_result(test_metrics, model, epoch, data='test')
         model.avg_reset()
         model.reset()
 
